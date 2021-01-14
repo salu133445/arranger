@@ -1,0 +1,44 @@
+# Bach chorales
+bach:
+  programs:
+    Soprano: 73  # flute
+    Alto: 68  # oboe
+    Tenor: 70  # bassoon
+    Bass: 71  # clarinet
+  has_drums: false
+
+# MusicNet
+musicnet:
+  programs:
+    Violin 1: 40  # violin
+    Violin 2: 40  # violin
+    Viola: 41  # viola
+    Cello: 42  # cello
+  has_drums: false
+
+# NES Music Database
+nes:
+  programs:
+    Pulse 1: 80  # lead 1 (square)
+    Pulse 2: 81  # Lead 2 (sawtooth)
+    Triangle: 38  # slap bass 1
+  has_drums: false
+
+# Lakh MIDI Dataset
+lmd:
+  programs:
+    Piano: 0  # acoustic grand piano
+    Guitar: 24   # acoustic guitar (nylon)
+    Bass: 32  # acoustic bass
+    Strings: 48  # string ensemble 1
+    Brass: 61  # brass section
+  has_drums: true
+
+# Color matrix
+colors:
+  - [31, 119, 180]
+  - [255, 127, 14]
+  - [44, 160, 44]
+  - [214, 39, 40]
+  - [148, 103, 189]
+  - [140, 86, 75]
