@@ -3,6 +3,7 @@ import argparse
 import logging
 import math
 import random
+from operator import itemgetter
 from pathlib import Path
 
 import joblib
@@ -54,7 +55,7 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def get_arrays(notes, n_tracks, seq_len):
+def get_arrays(notes, labels, n_tracks, seq_len):
     """Process data and return as a dictionary of arrays."""
     # Create a dictionary of arrays initialized to zeros
     data = {
@@ -67,11 +68,11 @@ def get_arrays(notes, n_tracks, seq_len):
     }
 
     # Fill in data
-    for i, note in enumerate(notes):
+    for i, (note, label) in enumerate(zip(notes, labels)):
         data["time"][i] = note[0]
-        data["pitch"][i] = note[1] + 1
+        data["pitch"][i] = note[1] + 1  # 0 is reserved for 'no pitch'
         data["duration"][i] = note[2]
-        data["label"][i] = note[3] + 1
+        data["label"][i] = label + 1  # 0 is reserved for 'no label'
 
     for i in range(n_tracks):
         nonzero = (data["label"] == i).nonzero()[0]
@@ -87,43 +88,48 @@ def process(filename, dataset, max_samples=None, seq_len=None):
     # Load the data
     music = muspy.load(filename)
 
-    # Get names
+    # Get track names and number of tracks
     names = list(CONFIG[dataset]["programs"].keys())
     n_tracks = len(names)
 
-    # Collect the notes
-    notes = []
+    # Collect notes and labels
+    notes, labels = [], []
     for track in music.tracks:
+        # Skip drum track or empty track
+        if track.is_drum or not track.notes:
+            continue
+        # Get label
         label = names.index(track.name)
+        # Collect notes and labels
         for note in track.notes:
-            notes.append((note.time, note.pitch, note.duration, label))
+            notes.append((note.time, note.pitch, note.duration, note.velocity))
+            labels.append(label)
 
-    # Return None if no note is found
-    if not notes:
-        return None
-
-    # Remove duplicates
-    notes = list(set(notes))
-
-    # Sort the collected notes
-    notes.sort()
+    # Sort the notes and labels (using notes as keys)
+    notes, labels = zip(*sorted(zip(notes, labels), key=itemgetter(0)))
 
     # Set sequence length to number of notes by default
     if seq_len is None:
-        arrays = get_arrays(notes, n_tracks, len(notes))
+        arrays = get_arrays(notes, labels, n_tracks, len(notes))
         return [{"arrays": arrays, "filename": filename, "start": 0}]
 
-    # Get a list of dictionary of arrays if sequence length is given
+    # Sample segment indices
     n_candidates = math.ceil(len(notes) / seq_len)
     if max_samples is not None and (n_candidates > max_samples):
         indices = random.sample(range(n_candidates), max_samples)
     else:
         indices = range(n_candidates)
 
+    # Collect arrays
     collected = []
-    for i in indices:
-        start = i * seq_len
-        arrays = get_arrays(notes[start : start + seq_len], n_tracks, seq_len)
+    for idx in indices:
+        start = idx * seq_len
+        arrays = get_arrays(
+            notes[start : start + seq_len],
+            labels[start : start + seq_len],
+            n_tracks,
+            seq_len,
+        )
         collected.append(
             {"arrays": arrays, "filename": filename, "start": start}
         )

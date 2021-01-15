@@ -5,13 +5,18 @@ import logging
 from operator import itemgetter
 from pathlib import Path
 
-import imageio
 import joblib
 import muspy
 import numpy as np
 import tqdm
 
-from arranger.utils import load_config, setup_loggers
+from arranger.utils import (
+    load_config,
+    reconstruct_tracks,
+    save_comparison,
+    save_sample,
+    setup_loggers,
+)
 
 # Load configuration
 CONFIG = load_config()
@@ -194,69 +199,6 @@ def predict(notes, onsets, n_tracks, states):
     return predictions
 
 
-def reconstruct_tracks(notes, labels, programs):
-    """Reconstruct the tracks from data."""
-    # Reconstruct the notes
-    note_lists = [[] for _ in range(len(programs))]
-    for note, label in zip(notes, labels):
-        note_lists[int(label)].append(
-            muspy.Note(
-                time=int(note[0]),
-                pitch=int(note[1]),
-                duration=int(note[2]),
-                velocity=int(note[3]),
-            )
-        )
-
-    # Reconstruct the tracks
-    tracks = []
-    for note_list, (name, program) in zip(note_lists, programs.items()):
-        tracks.append(
-            muspy.Track(
-                program=program, is_drum=False, name=name, notes=note_list
-            )
-        )
-
-    return tracks
-
-
-def to_pianoroll(music):
-    """Convert a music into a piano roll."""
-    multitrack = music.to_pypianoroll()
-    stacked = multitrack.stack() > 0
-    colormatrix = np.array(CONFIG["colors"][: len(music)])
-    reshaped = stacked.reshape(len(music), -1)
-    recolored = 255 - np.matmul((255 - colormatrix.T), reshaped)
-    clipped = np.round(np.clip(recolored, 0, 255)).astype(np.uint8)
-    reshaped = clipped.reshape((3, stacked.shape[1], stacked.shape[2]))
-    transposed = np.moveaxis(reshaped, 0, -1)
-    return np.flip(transposed, axis=1).transpose(1, 0, 2)
-
-
-def save_sample(music, sample_dir, filename):
-    """Save a music sample into different formats."""
-    music.save(sample_dir / "json" / f"{filename}.json")
-    try:
-        music.write(sample_dir / "mid" / f"{filename}.mid")
-    except ValueError:
-        # NOTE: A workaround for a MIDI output bug in MusPy
-        music.key_signatures = []
-        music.write(sample_dir / "mid" / f"{filename}.mid")
-    pianoroll = to_pianoroll(music)
-    imageio.imwrite(sample_dir / "png" / f"{filename}.png", pianoroll)
-    return pianoroll
-
-
-def save_comparison(pianoroll, pianoroll_pred, sample_dir, filename):
-    """Save comparisons of piano rolls."""
-    binarized = np.tile((pianoroll < 250).any(-1, keepdims=True), (1, 1, 3))
-    uncolored = (255 * (1 - binarized)).astype(np.uint8)
-    pianoroll_comp = np.concatenate((uncolored, pianoroll, pianoroll_pred), 0)
-    imageio.imwrite(
-        sample_dir / "png" / f"{filename}.png", pianoroll_comp,
-    )
-
-
 def process(filename, states, dataset, output_dir, save):
     """Process a file."""
     # Load the data
@@ -302,19 +244,20 @@ def process(filename, states, dataset, output_dir, save):
     # Shorthands
     sample_dir = output_dir / "samples"
     programs = CONFIG[dataset]["programs"]
+    colors = CONFIG["colors"]
 
     # Reconstruct and save the music using the predicted labels
     music_pred = music.deepcopy()
     music_pred.tracks = reconstruct_tracks(notes, predictions, programs)
     pianoroll_pred = save_sample(
-        music_pred, sample_dir, f"{filename.stem}_pred"
+        music_pred, sample_dir, f"{filename.stem}_pred", colors
     )
 
     # Reconstruct and save the music using the original labels
     music_truth = music.deepcopy()
     music_truth.tracks = reconstruct_tracks(notes, labels, programs)
     pianoroll_truth = save_sample(
-        music_truth, sample_dir, f"{filename.stem}_truth"
+        music_truth, sample_dir, f"{filename.stem}_truth", colors
     )
 
     # Save comparison
@@ -326,11 +269,11 @@ def process(filename, states, dataset, output_dir, save):
     if CONFIG[dataset]["has_drums"]:
         music_pred.tracks.append(music.tracks[-1])  # append drum track
         pianoroll_pred = save_sample(
-            music_pred, sample_dir, f"{filename.stem}_pred_drums"
+            music_pred, sample_dir, f"{filename.stem}_pred_drums", colors
         )
         music_truth.tracks.append(music.tracks[-1])  # append drum track
         pianoroll_truth = save_sample(
-            music_truth, sample_dir, f"{filename.stem}_truth_drums"
+            music_truth, sample_dir, f"{filename.stem}_truth_drums", colors
         )
         save_comparison(
             pianoroll_truth,
