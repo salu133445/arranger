@@ -1,4 +1,4 @@
-"""Baseline model - most common label."""
+"""Inference script for the most-common-label algorithm."""
 import argparse
 import logging
 from pathlib import Path

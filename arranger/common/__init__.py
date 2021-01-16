@@ -1,0 +1,1 @@
+"""Most-common-label algorithm."""

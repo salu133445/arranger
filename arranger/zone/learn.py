@@ -1,4 +1,4 @@
-"""Baseline model - zone-based."""
+"""Learning script for the zone-based algorithm."""
 import argparse
 import itertools
 import logging

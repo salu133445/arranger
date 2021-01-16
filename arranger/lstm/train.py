@@ -1,4 +1,4 @@
-"""Train the model."""
+"""Training script for the LSTM model."""
 import argparse
 import logging
 import random
@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 import tensorflow as tf
 
-from arranger.rnn.model import Arranger
+from arranger.lstm.model import Arranger
 from arranger.utils import load_config, setup_loggers
 
 # Load configuration

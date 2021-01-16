@@ -1,4 +1,4 @@
-"""Baseline model - closest pitches."""
+"""Inference script for the closest-pitch algorithm."""
 import argparse
 import itertools
 import logging
