@@ -8,7 +8,7 @@ import numpy as np
 import tensorflow as tf
 
 from arranger.lstm.model import Arranger
-from arranger.utils import load_config, setup_loggers
+from arranger.utils import load_config, load_npy, load_npz, setup_loggers
 
 # Load configuration
 CONFIG = load_config()
@@ -41,6 +41,30 @@ def parse_arguments():
         help="whether to use data augmentation",
     )
     parser.add_argument(
+        "-di",
+        "--use_duration",
+        action="store_true",
+        help="use duration as an input",
+    )
+    parser.add_argument(
+        "-fi",
+        "--use_frequency",
+        action="store_true",
+        help="use frequency as an input",
+    )
+    parser.add_argument(
+        "-oh",
+        "--use_onset_hint",
+        action="store_true",
+        help="use onset hint as an input",
+    )
+    parser.add_argument(
+        "-ph",
+        "--use_pitch_hint",
+        action="store_true",
+        help="use pitch hint as an input",
+    )
+    parser.add_argument(
         "-mb",
         "--max_beat",
         type=int,
@@ -55,47 +79,16 @@ def parse_arguments():
         help="maximum duration",
     )
     parser.add_argument(
-        "-di",
-        "--use_duration",
+        "-au",
+        "--autoregressive",
         action="store_true",
-        help="use duration as an input",
-    )
-    parser.add_argument(
-        "-fi",
-        "--use_frequency",
-        action="store_true",
-        help="use frequency as an input",
-    )
-    parser.add_argument(
-        "-pli",
-        "--use_previous_label",
-        action="store_true",
-        help="use previous label as an input",
-    )
-    parser.add_argument(
-        "-ohi",
-        "--use_onset_hint",
-        action="store_true",
-        help="use onset hint as an input",
-    )
-    parser.add_argument(
-        "-phi",
-        "--use_pitch_hint",
-        action="store_true",
-        help="use pitch hint as an input",
+        help="use autoregressive LSTM",
     )
     parser.add_argument(
         "-bi",
         "--bidirectional",
         action="store_true",
         help="use bidirectional LSTM",
-    )
-    parser.add_argument(
-        "-bs",
-        "--batch_size",
-        type=int,
-        default=16,
-        help="batch size for training",
     )
     parser.add_argument(
         "-nl",
@@ -112,6 +105,13 @@ def parse_arguments():
         help="number of hidden units per layer",
     )
     parser.add_argument(
+        "-bs",
+        "--batch_size",
+        type=int,
+        default=16,
+        help="batch size for training",
+    )
+    parser.add_argument(
         "-e", "--epoch", type=int, default=100, help="maximum number of epochs"
     )
     parser.add_argument("-g", "--gpu", type=int, help="GPU device to use")
@@ -119,16 +119,6 @@ def parse_arguments():
         "-q", "--quiet", action="store_true", help="reduce output verbosity"
     )
     return parser.parse_args()
-
-
-def load_npy(filename):
-    """Load a NPY file into an array."""
-    return np.load(filename).astype(np.float32)
-
-
-def load_npz(filename):
-    """Load a NPZ file into a list of arrays."""
-    return [arr.astype(np.float32) for arr in np.load(filename).values()]
 
 
 def main():
@@ -161,6 +151,7 @@ def main():
 
     # Load training data
     logging.info("Loading training data...")
+    n_tracks = len(CONFIG[args.dataset]["programs"])
     train_data = {
         "time": load_npy(args.input_dir / "time_train.npy"),
         "pitch": load_npy(args.input_dir / "pitch_train.npy"),
@@ -185,18 +176,33 @@ def main():
             inputs = {"time": data["time"][i], "pitch": data["pitch"][i]}
             if training and args.augmentation:
                 inputs["pitch"] = inputs["pitch"] + random.randint(-5, 6)
+                inputs["pitch"][inputs["pitch"] > 127] -= 12
+                inputs["pitch"][inputs["pitch"] < 0] += 12
             if args.use_duration:
                 inputs["duration"] = data["duration"][i]
-            if args.use_previous_label:
-                inputs["previous_label"] = data["previous_label"][i]
             if args.use_onset_hint:
                 inputs["onset_hint"] = data["onset_hint"][i]
             if args.use_pitch_hint:
                 inputs["pitch_hint"] = data["pitch_hint"][i]
+            if args.autoregressive:
+                inputs["previous_label"] = np.roll(labels[i], 1, 0)
+                inputs["previous_label"][0] = 0
             yield inputs, labels[i]
 
     output_shapes = ({"time": (None,), "pitch": (None,)}, (None,))
-    output_types = ({"time": tf.float32, "pitch": tf.float32}, tf.float32)
+    output_types = ({"time": tf.int32, "pitch": tf.int32}, tf.int32)
+    if args.use_duration:
+        output_shapes[0]["duration"] = (None,)
+        output_types[0]["duration"] = tf.int32
+    if args.use_onset_hint:
+        output_shapes[0]["onset_hint"] = (n_tracks,)
+        output_types[0]["onset_hint"] = tf.int32
+    if args.use_pitch_hint:
+        output_shapes[0]["pitch_hint"] = (n_tracks,)
+        output_types[0]["pitch_hint"] = tf.int32
+    if args.autoregressive:
+        output_shapes[0]["previous_label"] = (None,)
+        output_types[0]["previous_label"] = tf.int32
 
     train_dataset = tf.data.Dataset.from_generator(
         lambda: loader(train_data, train_labels, training=True),
@@ -221,10 +227,6 @@ def main():
         val_data["pitch_hint"] = load_npz(
             args.input_dir / "pitch_hint_val.npz"
         )
-    if args.use_previous_label:
-        val_data["previous_label"] = load_npz(
-            args.input_dir / "previous_label_val.npz"
-        )
     val_labels = load_npz(args.input_dir / "label_val.npz")
     val_dataset = tf.data.Dataset.from_generator(
         lambda: loader(val_data, val_labels, training=False),
@@ -239,7 +241,6 @@ def main():
     logging.info("Building model...")
 
     # Inputs
-    n_tracks = len(CONFIG[args.dataset]["programs"])
     inputs = {
         "time": tf.keras.layers.Input((None,), name="time"),
         "pitch": tf.keras.layers.Input((None,), name="pitch"),
@@ -254,24 +255,22 @@ def main():
         inputs["pitch_hint"] = tf.keras.layers.Input(
             (n_tracks,), name="pitch_hint"
         )
-    if args.use_previous_label:
-        inputs["previous_label"] = tf.keras.layers.Input(
-            (None,), name="previous_label"
-        )
+    if args.autoregressive:
+        inputs["previous_label"] = tf.keras.layers.Input((None,), name="label")
     arranger = Arranger(
         use_duration=args.use_duration,
         use_frequency=args.use_frequency,
-        use_previous_label=args.use_previous_label,
         use_onset_hint=args.use_onset_hint,
         use_pitch_hint=args.use_pitch_hint,
         max_beat=args.max_beat,
         max_duration=args.max_duration,
+        autoregressive=args.autoregressive,
+        bidirectional=args.bidirectional,
         n_tracks=n_tracks,
         n_layers=args.n_layers,
         n_units=args.n_units,
-        bidirectional=args.bidirectional,
     )
-    output, _ = arranger(inputs)
+    output = arranger(inputs)
     model = tf.keras.Model(inputs, output)
 
     # Count variables

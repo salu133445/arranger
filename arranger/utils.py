@@ -92,3 +92,12 @@ def save_comparison(pianoroll, pianoroll_pred, sample_dir, filename):
         sample_dir / "png" / f"{filename}.png", pianoroll_comp,
     )
     return pianoroll_comp
+
+def load_npy(filename):
+    """Load a NPY file into an array."""
+    return np.load(filename).astype(np.int32)
+
+
+def load_npz(filename):
+    """Load a NPZ file into a list of arrays."""
+    return [arr.astype(np.int32) for arr in np.load(filename).values()]
