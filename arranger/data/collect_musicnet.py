@@ -143,6 +143,7 @@ def main():
     args.output_dir.mkdir(exist_ok=True)
     for subdir in ("train", "valid", "test"):
         (args.output_dir / subdir).mkdir(exist_ok=True)
+    assert args.n_jobs >= 1, "`n_jobs` must be a positive integer."
 
     # Set up loggers
     setup_loggers(
@@ -166,15 +167,13 @@ def main():
             if process_and_save(filename, args.output_dir, split):
                 count += 1
         logging.info(f"Successfully saved {count} files.")
-    elif args.n_jobs > 1:
+    else:
         results = joblib.Parallel(args.n_jobs, verbose=0 if args.quiet else 5)(
             joblib.delayed(process_and_save)(filename, args.output_dir, split)
             for filename, split in zip(filenames, splits)
         )
         count = sum((bool(x) for x in results))
         logging.info(f"Successfully saved {count} files.")
-    else:
-        raise ValueError("`n_jobs` must be a positive interger.")
 
     # Sample test files
     sample_filenames = list(args.output_dir.glob("test/*.json"))

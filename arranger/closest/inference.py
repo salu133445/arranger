@@ -290,7 +290,7 @@ def main():
     # Parse command-line arguments
     args = parse_arguments()
     args.output_dir.mkdir(exist_ok=True)
-    assert args.n_jobs >= 1, "`n_jobs` must be a positive interger."
+    assert args.n_jobs >= 1, "`n_jobs` must be a positive integer."
 
     # Make sure sample directories exist
     (args.output_dir / "samples").mkdir(exist_ok=True)

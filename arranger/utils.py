@@ -89,9 +89,11 @@ def save_comparison(pianoroll, pianoroll_pred, sample_dir, filename):
     uncolored = (255 * (1 - binarized)).astype(np.uint8)
     pianoroll_comp = np.concatenate((uncolored, pianoroll, pianoroll_pred), 0)
     imageio.imwrite(
-        sample_dir / "png" / f"{filename}.png", pianoroll_comp,
+        sample_dir / "png" / f"{filename}.png",
+        pianoroll_comp,
     )
     return pianoroll_comp
+
 
 def load_npy(filename):
     """Load a NPY file into an array."""
