@@ -1,7 +1,6 @@
 """Collect training data."""
 import argparse
 import logging
-import math
 import random
 from operator import itemgetter
 from pathlib import Path
@@ -38,15 +37,6 @@ def parse_arguments():
         help="dataset key",
     )
     parser.add_argument(
-        "-s", "--seq_len", type=int, help="maximum training sequence length"
-    )
-    parser.add_argument(
-        "-m",
-        "--max_samples",
-        type=int,
-        help="maximum number of samples per song",
-    )
-    parser.add_argument(
         "-j", "--n_jobs", type=int, default=1, help="number of workers"
     )
     parser.add_argument(
@@ -62,6 +52,7 @@ def get_arrays(notes, labels, n_tracks, seq_len):
         "time": np.zeros((seq_len,), int),
         "pitch": np.zeros((seq_len,), int),
         "duration": np.zeros((seq_len,), int),
+        "velocity": np.zeros((seq_len,), int),
         "label": np.zeros((seq_len,), int),
         "onset_hint": np.zeros((n_tracks,), int),
         "pitch_hint": np.zeros((n_tracks,), int),
@@ -72,6 +63,7 @@ def get_arrays(notes, labels, n_tracks, seq_len):
         data["time"][i] = note[0]
         data["pitch"][i] = note[1] + 1  # 0 is reserved for 'no pitch'
         data["duration"][i] = note[2]
+        data["velocity"][i] = note[3]
         data["label"][i] = label + 1  # 0 is reserved for 'no label'
 
     for i in range(n_tracks):
@@ -83,7 +75,7 @@ def get_arrays(notes, labels, n_tracks, seq_len):
     return data
 
 
-def process(filename, dataset, max_samples=None, seq_len=None):
+def process(filename, dataset):
     """Process the data and return as a list of dictionary of arrays."""
     # Load the data
     music = muspy.load(filename)
@@ -109,57 +101,9 @@ def process(filename, dataset, max_samples=None, seq_len=None):
     notes, labels = zip(*sorted(zip(notes, labels), key=itemgetter(0)))
 
     # Set sequence length to number of notes by default
-    if seq_len is None:
-        arrays = get_arrays(notes, labels, n_tracks, len(notes))
-        return [{"arrays": arrays, "filename": filename, "start": 0}]
+    arrays = get_arrays(notes, labels, n_tracks, len(notes))
 
-    # Sample segment indices
-    n_candidates = math.ceil(len(notes) / seq_len)
-    if max_samples is not None and (n_candidates > max_samples):
-        indices = random.sample(range(n_candidates), max_samples)
-    else:
-        indices = range(n_candidates)
-
-    # Collect arrays
-    collected = []
-    for idx in indices:
-        start = idx * seq_len
-        arrays = get_arrays(
-            notes[start : start + seq_len],
-            labels[start : start + seq_len],
-            n_tracks,
-            seq_len,
-        )
-        collected.append(
-            {"arrays": arrays, "filename": filename, "start": start}
-        )
-
-    return collected
-
-
-def collect_data(
-    filenames, dataset, max_samples=None, seq_len=None, n_jobs=1, quiet=False,
-):
-    """Collect data from a list of files."""
-    assert n_jobs >= 1, "`n_jobs` must be a positive interger."
-
-    data = []
-
-    if n_jobs == 1:
-        for filename in tqdm.tqdm(filenames, disable=quiet):
-            processed = process(filename, dataset, max_samples, seq_len)
-            if processed is not None:
-                data.extend(processed)
-        return data
-
-    results = joblib.Parallel(n_jobs, verbose=0 if quiet else 5)(
-        joblib.delayed(process)(filename, dataset, max_samples, seq_len)
-        for filename in filenames
-    )
-    for processed in results:
-        if processed is not None:
-            data.extend(processed)
-    return data
+    return arrays
 
 
 def main():
@@ -167,7 +111,7 @@ def main():
     # Parse command-line arguments
     args = parse_arguments()
     args.output_dir.mkdir(exist_ok=True)
-    assert args.n_jobs >= 1, "`n_jobs` must be a positive interger."
+    assert args.n_jobs >= 1, "`n_jobs` must be a positive integer."
 
     # Set up loggers
     setup_loggers(
@@ -187,6 +131,7 @@ def main():
         "time",
         "pitch",
         "duration",
+        "velocity",
         "label",
         "onset_hint",
         "pitch_hint",
@@ -195,89 +140,48 @@ def main():
     # === Training data ===
     logging.info("Processing training data...")
 
-    # Collect training data
-    train_data = collect_data(
-        list(args.input_dir.glob("train/*.json")),
-        args.dataset,
-        seq_len=args.seq_len,
-        max_samples=args.max_samples,
-        n_jobs=args.n_jobs,
-        quiet=args.quiet,
-    )
+    for subset in ("train", "valid", "test"):
+        filenames = list(args.input_dir.glob(f"{subset}/*.json"))
+        if args.n_jobs == 1:
+            data = []
+            for filename in tqdm.tqdm(filenames, disable=args.quiet):
+                processed = process(filename, args.dataset)
+                if processed is not None:
+                    data.append(
+                        {"filename": filename.stem, "arrays": processed}
+                    )
 
-    # Save arrays
-    for name in features:
-        np.save(
-            args.output_dir / f"{name}_train.npy",
-            np.stack([sample["arrays"][name] for sample in train_data]),
-        )
-    logging.info(f"Successfully saved {len(train_data)} training samples.")
+        else:
+            results = joblib.Parallel(
+                args.n_jobs, verbose=0 if args.quiet else 5
+            )(
+                joblib.delayed(process)(filename, args.dataset)
+                for filename in filenames
+            )
+            data = [
+                {"filename": filename.stem, "arrays": result}
+                for filename, result in zip(filenames, results)
+                if result is not None
+            ]
 
-    # === Validation data ===
-    logging.info("Processing validation data...")
+        # Sort collected data by array length (to speed up batch inference)
+        if subset in ("valid", "test"):
+            data.sort(key=lambda x: len(x["arrays"]["time"]))
 
-    # Collect validation data
-    val_data = collect_data(
-        list(args.input_dir.glob("valid/*.json")),
-        args.dataset,
-        max_samples=args.max_samples,
-        n_jobs=args.n_jobs,
-        quiet=args.quiet,
-    )
-
-    # Sort collected data by array length (to speed up batch inference)
-    val_data.sort(key=lambda x: len(x["arrays"]["time"]))
-
-    # Save arrays
-    for name in features:
-        np.savez(
-            args.output_dir / f"{name}_val.npz",
-            *[sample["arrays"][name] for sample in val_data],
+        # Save arrays
+        for name in features:
+            np.savez(
+                args.output_dir / f"{name}_{subset}.npz",
+                *[sample["arrays"][name] for sample in data],
+            )
+        logging.info(
+            f"Successfully saved {len(data)} samples for subset : {subset}."
         )
 
-    # Save filenames
-    with open(args.output_dir / "filenames_val.txt", "w") as f:
-        for sample in val_data:
-            f.write(f"{sample['filename']}\n")
-
-    # Save start times
-    np.savetxt(
-        args.output_dir / "starts_val.txt",
-        np.stack([sample["start"] for sample in val_data]),
-    )
-    logging.info(f"Successfully saved {len(val_data)} validation samples.")
-
-    # === Test data ===
-    logging.info("Processing test data...")
-    test_data = collect_data(
-        list(args.input_dir.glob("test/*.json")),
-        args.dataset,
-        max_samples=args.max_samples,
-        n_jobs=args.n_jobs,
-        quiet=args.quiet,
-    )
-
-    # Sort collected data by array length (to speed up batch inference)
-    test_data.sort(key=lambda x: len(x["arrays"]["time"]))
-
-    # Save arrays
-    for name in features:
-        np.savez(
-            args.output_dir / f"{name}_test.npz",
-            *[sample["arrays"][name] for sample in test_data],
-        )
-
-    # Save filenames
-    with open(args.output_dir / "indices_test.txt", "w") as f:
-        for sample in test_data:
-            f.write(f"{sample['filename']} {sample['start']}\n")
-
-    # Save start times
-    np.savetxt(
-        args.output_dir / "starts_test.txt",
-        np.stack([sample["start"] for sample in test_data]),
-    )
-    logging.info(f"Successfully saved {len(test_data)} test samples.")
+        # Save filenames
+        with open(args.output_dir / f"filenames_{subset}.txt", "w") as f:
+            for sample in data:
+                f.write(f"{sample['filename']}\n")
 
 
 if __name__ == "__main__":
