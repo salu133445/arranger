@@ -254,55 +254,29 @@ def main():
         output_shapes[0]["previous_label"] = (None,)
         output_types[0]["previous_label"] = tf.int32
 
-    # Load training data
-    logging.info("Loading training data...")
-    train_data = {
-        "time": load_npz(args.input_dir / "time_train.npz"),
-        "pitch": load_npz(args.input_dir / "pitch_train.npz"),
+    # Load test data
+    logging.info("Loading test data...")
+    test_data = {
+        "time": load_npz(args.input_dir / "time_test.npz"),
+        "pitch": load_npz(args.input_dir / "pitch_test.npz"),
     }
     if args.use_duration:
-        train_data["duration"] = load_npz(
-            args.input_dir / "duration_train.npz"
-        )
+        test_data["duration"] = load_npz(args.input_dir / "duration_test.npz")
     if args.use_onset_hint:
-        train_data["onset_hint"] = load_npz(
-            args.input_dir / "onset_hint_train.npz"
+        test_data["onset_hint"] = load_npz(
+            args.input_dir / "onset_hint_test.npz"
         )
     if args.use_pitch_hint:
-        train_data["pitch_hint"] = load_npz(
-            args.input_dir / "pitch_hint_train.npz"
+        test_data["pitch_hint"] = load_npz(
+            args.input_dir / "pitch_hint_test.npz"
         )
-    train_labels = load_npz(args.input_dir / "label_train.npz")
-    train_dataset = tf.data.Dataset.from_generator(
-        lambda: loader(train_data, train_labels, training=True, args=args),
+    test_labels = load_npz(args.input_dir / "label_test.npz")
+    test_dataset = tf.data.Dataset.from_generator(
+        lambda: loader(test_data, test_labels, training=False, args=args),
         output_shapes=output_shapes,
         output_types=output_types,
     )
-    train_dataset = train_dataset.batch(args.batch_size).prefetch(3)
-
-    # Load validation data
-    logging.info("Loading validation data...")
-    val_data = {
-        "time": load_npz(args.input_dir / "time_valid.npz"),
-        "pitch": load_npz(args.input_dir / "pitch_valid.npz"),
-    }
-    if args.use_duration:
-        val_data["duration"] = load_npz(args.input_dir / "duration_valid.npz")
-    if args.use_onset_hint:
-        val_data["onset_hint"] = load_npz(
-            args.input_dir / "onset_hint_valid.npz"
-        )
-    if args.use_pitch_hint:
-        val_data["pitch_hint"] = load_npz(
-            args.input_dir / "pitch_hint_valid.npz"
-        )
-    val_labels = load_npz(args.input_dir / "label_valid.npz")
-    val_dataset = tf.data.Dataset.from_generator(
-        lambda: loader(val_data, val_labels, training=False, args=args),
-        output_shapes=output_shapes,
-        output_types=output_types,
-    )
-    val_dataset = val_dataset.batch(1).prefetch(3)
+    test_dataset = test_dataset.batch(1).prefetch(3)
 
     # === Model ===
 
@@ -352,17 +326,8 @@ def main():
     output = arranger(inputs)
     model = tf.keras.Model(inputs, output)
 
-    # Count variables
-    n_trainables = sum(
-        tf.keras.backend.count_params(w) for w in model.trainable_weights
-    )
-    n_nontrainables = sum(
-        tf.keras.backend.count_params(w) for w in model.non_trainable_weights
-    )
-    logging.info("Model statistics:")
-    logging.info(f"- Total parameters : {n_trainables + n_nontrainables}")
-    logging.info(f"- Trainable parameters : {n_trainables}")
-    logging.info(f"- Nontrainable parameters : {n_nontrainables}")
+    # Load trained weights
+    model.load_weights(str(args.output_dir / "best_model.hdf5"))
 
     # Compile the model
     logging.info("Compiling model...")
@@ -385,25 +350,10 @@ def main():
     # === Training ===
 
     # Train the model
-    logging.info("Training model...")
-    model_checkpoint = tf.keras.callbacks.ModelCheckpoint(
-        str(args.output_dir / "best_model.hdf5"),
-        save_best_only=True,
-        save_weights_only=True,
-    )
-    csv_logger = tf.keras.callbacks.CSVLogger(
-        str(args.output_dir / "training.log")
-    )
-    early_stopping = tf.keras.callbacks.EarlyStopping(patience=5)
-    model.fit(
-        train_dataset,
-        batch_size=args.batch_size,
-        epochs=args.epoch,
-        validation_data=val_dataset,
-        validation_batch_size=1,
-        callbacks=[model_checkpoint, csv_logger, early_stopping],
-        verbose=(1 - args.quiet),
-    )
+    logging.info("Testing model...")
+    model.evaluate(test_dataset, batch_size=1, verbose=(1 - args.quiet))
+
+    # TODO: Use predict -> compute metrics & save samples
 
 
 if __name__ == "__main__":

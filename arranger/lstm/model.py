@@ -25,7 +25,7 @@ def positional_encoding(position, d_model):
     # apply cos to odd indices in the array; 2i+1
     pos_encoding[:, 1::2] = np.cos(pos_encoding[:, 1::2])
 
-    return tf.cast(pos_encoding, dtype=tf.float32)
+    return tf.cast(pos_encoding, dtype=tf.float32)  # pylint: disable=all
 
 
 class InputLayer(tf.keras.layers.Layer):
@@ -33,38 +33,48 @@ class InputLayer(tf.keras.layers.Layer):
 
     def __init__(
         self,
+        max_len: int,
         use_duration: bool,
         use_frequency: bool,
         use_onset_hint: bool,
         use_pitch_hint: bool,
+        use_pitch_embedding: bool,
+        use_time_embedding: bool,
+        use_duration_embedding: bool,
         max_beat: int,
         max_duration: int,
         n_tracks: int,
     ):
         super().__init__()
+        self.max_len = max_len
         self.use_duration = use_duration
         self.use_frequency = use_frequency
         self.use_onset_hint = use_onset_hint
         self.use_pitch_hint = use_pitch_hint
+        self.use_pitch_embedding = use_pitch_embedding
+        self.use_time_embedding = use_time_embedding
+        self.use_duration_embedding = use_duration_embedding
         self.max_beat = max_beat
         self.max_duration = max_duration
         self.n_tracks = n_tracks
 
         # Embedding
-        self.time_embedding_position = tf.keras.layers.Embedding(
-            24, 16, name="time_embedding_position"
-        )
-        self.time_embedding_beat = tf.keras.layers.Embedding(
-            max_beat,
-            16,
-            weights=[positional_encoding(max_beat, 16)],
-            trainable=False,
-            name="time_embedding_beat",
-        )
-        self.pitch_embedding = tf.keras.layers.Embedding(
-            129, 16, name="pitch_embedding"
-        )
-        if use_duration:
+        if use_pitch_embedding:
+            self.pitch_embedding = tf.keras.layers.Embedding(
+                129, 16, name="pitch_embedding"
+            )
+        if use_time_embedding:
+            self.time_embedding_position = tf.keras.layers.Embedding(
+                24, 16, name="time_embedding_position"
+            )
+            self.time_embedding_beat = tf.keras.layers.Embedding(
+                max_beat,
+                16,
+                weights=[positional_encoding(max_beat, 16)],
+                trainable=False,
+                name="time_embedding_beat",
+            )
+        if use_duration and use_duration_embedding:
             self.duration_embedding = tf.keras.layers.Embedding(
                 max_duration + 1, 16, name="duration_embedding"
             )
@@ -101,27 +111,42 @@ class InputLayer(tf.keras.layers.Layer):
         """
         # Collect input tensors
         seq_len = tf.shape(inputs["time"])[1]
-        tensors = [
-            self.time_embedding_position(inputs["time"] % 24),
-            self.time_embedding_beat(
-                tf.clip_by_value(inputs["time"] // 24, 0, self.max_beat)
-            ),
-            self.pitch_embedding(inputs["pitch"]),
-        ]
-        if self.use_duration:
+        tensors = []
+        if self.use_pitch_embedding:
+            tensors.append(self.pitch_embedding(inputs["pitch"]))
+        else:
             tensors.append(
-                self.duration_embedding(
-                    tf.clip_by_value(inputs["duration"], 0, self.max_duration)
+                tf.expand_dims(tf.cast(inputs["pitch"], tf.float32), -1)
+            )
+
+        if self.use_time_embedding:
+            tensors.append(self.time_embedding_position(inputs["time"] % 24))
+            tensors.append(
+                self.time_embedding_beat(
+                    tf.clip_by_value(inputs["time"] // 24, 0, self.max_beat)
                 )
             )
+        else:
+            tensors.append(
+                tf.expand_dims(tf.cast(inputs["time"], tf.float32), -1)
+            )
+        if self.use_duration:
+            if self.use_duration_embedding:
+                tensors.append(
+                    self.duration_embedding(
+                        tf.clip_by_value(
+                            inputs["duration"], 0, self.max_duration
+                        )
+                    )
+                )
+            else:
+                tensors.append(
+                    tf.expand_dims(tf.cast(inputs["duration"], tf.float32), -1)
+                )
         if self.use_frequency:
             tensors.append(self.frequency_mapping(inputs["pitch"]))
         if self.use_onset_hint:
-            tensors.append(
-                tf.tile(
-                    tf.expand_dims(inputs["onset_hint"], 1), (1, seq_len, 1)
-                )
-            )
+            tensors.append(tf.cast(inputs["onset_hint"], tf.float32))
         if self.use_pitch_hint:
             for i in range(self.n_tracks):
                 tensors.append(
@@ -140,111 +165,6 @@ class InputLayer(tf.keras.layers.Layer):
         return tensor_out, mask
 
 
-# class AutoregressiveLSTM(tf.keras.layers.Layer):
-#     """An autoregressive multi-layer LSTM."""
-
-#     def __init__(self, n_layers: int, n_units: int):
-#         super().__init__()
-#         self.n_layers = n_layers
-#         self.n_units = n_units
-
-#         self.lstm_cells = [
-#             tf.keras.layers.LSTMCell(n_units) for _ in range(n_layers)
-#         ]
-#         self.layernorms = [
-#             tf.keras.layers.LayerNormalization() for _ in range(n_layers)
-#         ]
-#         self.dropouts = [tf.keras.layers.Dropout(0.2) for _ in range(n_layers)]
-
-#     def call(self, x, y=None, training=False, mask=None):  # noqa
-#         x_shape = tf.shape(x)
-#         batch_size = x_shape[0]
-#         states = [
-#             (
-#                 tf.zeros((batch_size, self.n_units)),
-#                 tf.zeros((batch_size, self.n_units)),
-#             )
-#         ] * self.n_layers
-
-#         output = tf.zeros((batch_size, 1))
-#         outputs = []
-#         for step in range(self.seq_len):
-#             x_step = tf.concat((x[:, step], output), -1)
-#             for i, (lstm_cell, layernorm, dropout) in enumerate(
-#                 zip(self.lstm_cells, self.layernorms, self.dropouts)
-#             ):
-#                 x_step, state = lstm_cell(x_step, states[i])
-#                 x_step = layernorm(x_step)
-#                 x_step = dropout(x_step, training=training)
-
-#                 # Update states
-#                 states[i] = state
-#             output = tf.expand_dims(y[:, step], -1)
-#             outputs.append(self.dense(x_step))
-
-#         return tf.stack(outputs)
-
-
-# class LSTM(tf.keras.layers.Layer):
-#     """A multi-layer LSTM."""
-
-#     def __init__(self, n_layers: int, n_units: int):
-#         super().__init__()
-#         self.n_layers = n_layers
-#         self.n_units = n_units
-
-#         self.lstms = [
-#             tf.keras.layers.LSTM(
-#                 n_units, return_sequences=True, return_state=True
-#             )
-#             for _ in range(n_layers)
-#         ]
-#         self.layernorms = [
-#             tf.keras.layers.LayerNormalization() for _ in range(n_layers)
-#         ]
-#         self.dropouts = [tf.keras.layers.Dropout(0.2) for _ in range(n_layers)]
-
-#     def call(self, x, initial_states=None, training=False, mask=None):  # noqa
-#         states = []
-#         for i, (lstm, dropout, layernorm) in enumerate(
-#             zip(self.lstms, self.dropouts, self.layernorms)
-#         ):
-#             if initial_states is None:
-#                 x, h, c = lstm(x, mask=mask)
-#             else:
-#                 x, h, c = lstm(x, mask=mask, initial_state=initial_states[i])
-#             states.append((h, c))
-#             x = layernorm(x)
-#             x = dropout(x, training=training)
-#         return x
-
-# class BiLSTM(tf.keras.layers.Layer):
-#     """A bidirectional multi-layer LSTM."""
-
-#     def __init__(self, n_layers: int, n_units: int):
-#         super().__init__()
-#         self.n_layers = n_layers
-#         self.n_units = n_units
-
-#         self.lstms = [
-#             tf.keras.layers.Bidirectional(
-#                 tf.keras.layers.LSTM(n_units, return_sequences=True)
-#             )
-#             for _ in range(n_layers)
-#         ]
-#         self.layernorms = [
-#             tf.keras.layers.LayerNormalization() for _ in range(n_layers)
-#         ]
-#         self.dropouts = [tf.keras.layers.Dropout(0.2) for _ in range(n_layers)]
-
-#     def call(self, x, training=False, mask=None):  # noqa
-#         for lstm, dropout, layernorm in zip(
-#             self.lstms, self.dropouts, self.layernorms
-#         ):
-#             x = lstm(x, mask=mask)
-#             x = layernorm(x)
-#             x = dropout(x, training=training)
-#         return x
 class LSTM(tf.keras.layers.Layer):
     """A multi-layer LSTM."""
 
@@ -293,10 +213,14 @@ class Arranger(tf.keras.layers.Layer):
 
     def __init__(
         self,
+        max_len: int,
         use_duration: bool,
         use_frequency: bool,
         use_onset_hint: bool,
         use_pitch_hint: bool,
+        use_pitch_embedding: bool,
+        use_time_embedding: bool,
+        use_duration_embedding: bool,
         max_beat: int,
         max_duration: int,
         autoregressive: bool,
@@ -306,10 +230,14 @@ class Arranger(tf.keras.layers.Layer):
         n_units: int,
     ):
         super().__init__()
+        self.max_len = max_len
         self.use_duration = use_duration
         self.use_frequency = use_frequency
         self.use_onset_hint = use_onset_hint
         self.use_pitch_hint = use_pitch_hint
+        self.use_pitch_embedding = use_pitch_embedding
+        self.use_time_embedding = use_time_embedding
+        self.use_duration_embedding = use_duration_embedding
         self.max_beat = max_beat
         self.max_duration = max_duration
         self.autoregressive = autoregressive
@@ -322,10 +250,14 @@ class Arranger(tf.keras.layers.Layer):
         ), "`autoregressive` and `bidirectional` must not be both True"
 
         self.input_layer = InputLayer(
+            max_len=max_len,
             use_duration=use_duration,
             use_frequency=use_frequency,
             use_onset_hint=use_onset_hint,
             use_pitch_hint=use_pitch_hint,
+            use_pitch_embedding=use_pitch_embedding,
+            use_time_embedding=use_time_embedding,
+            use_duration_embedding=use_duration_embedding,
             max_beat=max_beat,
             max_duration=max_duration,
             n_tracks=n_tracks,
