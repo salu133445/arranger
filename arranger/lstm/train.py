@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 import tensorflow as tf
 
-from arranger.lstm.model import Arranger
+from arranger.lstm.model import LSTMArranger
 from arranger.utils import load_config, load_npz, setup_loggers
 
 # Load configuration
@@ -153,7 +153,7 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def loader(data, labels, training, args):
+def loader(data, labels, n_tracks, args, training):
     """Data loader."""
     for i in random.sample(range(len(labels)), len(labels)):
         # Get start time and end time
@@ -181,7 +181,6 @@ def loader(data, labels, training, args):
         if args.use_duration:
             inputs["duration"] = data["duration"][i][start:end]
         if args.use_onset_hint:
-            n_tracks = len(data["onset_hint"][i])
             inputs["onset_hint"] = np.zeros((seq_len, n_tracks))
             for idx, onset in enumerate(data["onset_hint"][i]):
                 inputs["onset_hint"][:onset, idx] = -1
@@ -189,14 +188,20 @@ def loader(data, labels, training, args):
         if args.use_pitch_hint:
             inputs["pitch_hint"] = data["pitch_hint"][i]
         if args.autoregressive:
-            inputs["previous_label"] = np.roll(labels[i][start:end], 1, 0)
-            inputs["previous_label"][0] = 0
+            inputs["previous_label"] = np.zeros((seq_len, n_tracks))
+            for idx in range(n_tracks):
+                nonzero = np.nonzero(labels[:seq_len] == idx + 1)[0]
+                inputs["previous_label"][
+                    nonzero + 1, np.full_like(nonzero, idx)
+                ] = 1
+            inputs["previous_label"][:10] = 0
+
         # Pad arrays with zeros at the end
         if training and seq_len < args.seq_len:
             for key in inputs:
-                if key == "onset_hint":
-                    inputs["onset_hint"] = np.pad(
-                        inputs["onset_hint"],
+                if key in ("onset_hint", "previous_label"):
+                    inputs[key] = np.pad(
+                        inputs[key],
                         ((0, args.seq_len - seq_len), (0, 0)),
                     )
                 elif key != "pitch_hint":
@@ -251,7 +256,7 @@ def main():
         output_shapes[0]["pitch_hint"] = (n_tracks,)
         output_types[0]["pitch_hint"] = tf.int32
     if args.autoregressive:
-        output_shapes[0]["previous_label"] = (None,)
+        output_shapes[0]["previous_label"] = (None, n_tracks)
         output_types[0]["previous_label"] = tf.int32
 
     # Load training data
@@ -274,7 +279,9 @@ def main():
         )
     train_labels = load_npz(args.input_dir / "label_train.npz")
     train_dataset = tf.data.Dataset.from_generator(
-        lambda: loader(train_data, train_labels, training=True, args=args),
+        lambda: loader(
+            train_data, train_labels, n_tracks, args, training=True
+        ),
         output_shapes=output_shapes,
         output_types=output_types,
     )
@@ -298,7 +305,7 @@ def main():
         )
     val_labels = load_npz(args.input_dir / "label_valid.npz")
     val_dataset = tf.data.Dataset.from_generator(
-        lambda: loader(val_data, val_labels, training=False, args=args),
+        lambda: loader(val_data, val_labels, n_tracks, args, training=False),
         output_shapes=output_shapes,
         output_types=output_types,
     )
@@ -330,9 +337,9 @@ def main():
         )
     if args.autoregressive:
         inputs["previous_label"] = tf.keras.layers.Input(
-            (None,), dtype=tf.int32, name="label"
+            (None, n_tracks), dtype=tf.int32, name="label"
         )
-    arranger = Arranger(
+    arranger = LSTMArranger(
         max_len=args.max_len,
         use_duration=args.use_duration,
         use_frequency=args.use_frequency,

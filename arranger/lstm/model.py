@@ -6,13 +6,13 @@ import tensorflow as tf
 
 
 def get_angles(pos, i, d_model):
-    """Copied from https://www.tensorflow.org/tutorials/text/transformer."""
+    """Copied from https://www.tensorflow.org/tutorials/text/transformer ."""
     angle_rates = 1 / np.power(10000, (2 * (i // 2)) / np.float32(d_model))
     return pos * angle_rates
 
 
 def positional_encoding(position, d_model):
-    """Copied from https://www.tensorflow.org/tutorials/text/transformer."""
+    """Copied from https://www.tensorflow.org/tutorials/text/transformer ."""
     pos_encoding = get_angles(
         np.arange(position)[:, np.newaxis],
         np.arange(d_model)[np.newaxis, :],
@@ -208,7 +208,7 @@ class LSTM(tf.keras.layers.Layer):
         return x
 
 
-class Arranger(tf.keras.layers.Layer):
+class LSTMArranger(tf.keras.layers.Layer):
     """An LSTM-based arranger model."""
 
     def __init__(
@@ -271,7 +271,7 @@ class Arranger(tf.keras.layers.Layer):
         x, mask = self.input_layer(inputs)
         if self.autoregressive:
             x = tf.concat(
-                (x, tf.expand_dims(inputs["previous_label"], -1)), -1
+                (x, tf.cast(inputs["previous_label"], tf.float32)), -1
             )
         x = self.lstm(x, training=training, mask=mask)
         return self.dense(x)

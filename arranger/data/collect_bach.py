@@ -162,7 +162,7 @@ def main():
     )  # Select splits for files randomly using an 8:1:1 train-valid-test ratio
     if args.n_jobs == 1:
         count = 0
-        filenames = tqdm.tqdm(filenames, disable=args.quiet)
+        filenames = tqdm.tqdm(filenames, disable=args.quiet, ncols=80)
         for filename, split in zip(filenames, splits):
             if process_and_save(filename, args.output_dir, split):
                 count += 1

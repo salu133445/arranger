@@ -145,7 +145,7 @@ def main():
     if args.n_jobs == 1:
         counts = sum(
             process(filename, args.dataset)
-            for filename in tqdm.tqdm(filenames, disable=args.quiet)
+            for filename in tqdm.tqdm(filenames, disable=args.quiet, ncols=80)
         )
     else:
         counts = sum(

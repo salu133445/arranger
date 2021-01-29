@@ -144,7 +144,7 @@ def main():
         filenames = list(args.input_dir.glob(f"{subset}/*.json"))
         if args.n_jobs == 1:
             data = []
-            for filename in tqdm.tqdm(filenames, disable=args.quiet):
+            for filename in tqdm.tqdm(filenames, disable=args.quiet, ncols=80):
                 processed = process(filename, args.dataset)
                 if processed is not None:
                     data.append(

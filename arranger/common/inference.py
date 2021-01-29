@@ -172,7 +172,7 @@ def main():
     assert filenames, "No input files found."
     is_samples = (filename.stem in sample_filenames for filename in filenames)
     if args.n_jobs == 1:
-        filenames = tqdm.tqdm(filenames, disable=args.quiet)
+        filenames = tqdm.tqdm(filenames, disable=args.quiet, ncols=80)
         results = [
             process(
                 filename, args.dataset, args.oracle, args.output_dir, is_sample

@@ -71,6 +71,11 @@ def process(filename):
     # Adjust resolution to 24 time steps per quarter note
     music.adjust_resolution(24)
 
+    # Skip the file if it is longer than 20 minutes
+    # (They are probably live-performance MIDI or simply corrupted.)
+    if music.get_real_end_time() > 1200:
+        return None
+
     # Collect notes
     notes = {
         "Piano": [],
@@ -109,7 +114,7 @@ def process(filename):
     for name in notes:
         track = muspy.Track(
             name=name,
-            program=CONFIG["lmd"]["programs"][name],
+            program=CONFIG["lmd"]["programs"][name] if name != "Drums" else 0,
             is_drum=(name == "Drums"),
             notes=notes[name],
         )
@@ -164,7 +169,7 @@ def main():
     )  # Select splits for files randomly using an 8:1:1 train-valid-test ratio
     if args.n_jobs == 1:
         count = 0
-        filenames = tqdm.tqdm(filenames, disable=args.quiet)
+        filenames = tqdm.tqdm(filenames, disable=args.quiet, ncols=80)
         for filename, split in zip(filenames, splits):
             if process_and_save(filename, args.output_dir, split):
                 count += 1
