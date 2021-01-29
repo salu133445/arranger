@@ -2,13 +2,23 @@
 import argparse
 import logging
 import random
+from operator import itemgetter
 from pathlib import Path
 
+import muspy
 import numpy as np
+import sklearn.metrics
 import tensorflow as tf
+import tqdm
 
 from arranger.lstm.model import Arranger
-from arranger.utils import load_config, load_npz, setup_loggers
+from arranger.utils import (
+    load_config,
+    reconstruct_tracks,
+    save_comparison,
+    save_sample,
+    setup_loggers,
+)
 
 # Load configuration
 CONFIG = load_config()
@@ -26,6 +36,13 @@ def parse_arguments():
     )
     parser.add_argument(
         "-o", "--output_dir", type=Path, required=True, help="output directory"
+    )
+    parser.add_argument(
+        "-m",
+        "--model_filename",
+        type=Path,
+        required=True,
+        help="model filename",
     )
     parser.add_argument(
         "-d",
@@ -143,9 +160,6 @@ def parse_arguments():
         default=16,
         help="batch size for training",
     )
-    parser.add_argument(
-        "-e", "--epoch", type=int, default=100, help="maximum number of epochs"
-    )
     parser.add_argument("-g", "--gpu", type=int, help="GPU device to use")
     parser.add_argument(
         "-q", "--quiet", action="store_true", help="reduce output verbosity"
@@ -153,60 +167,129 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def loader(data, labels, training, args):
-    """Data loader."""
-    for i in random.sample(range(len(labels)), len(labels)):
-        # Get start time and end time
-        if training:
-            if len(data["time"][i]) > args.seq_len:
-                start = random.randint(0, len(data["time"][i]) - args.seq_len)
-            else:
-                start = 0
-            end = start + args.seq_len
-        else:
-            start = 0
-            end = min(len(data["time"]), args.max_len)
-        # Collect data
-        inputs = {
-            "time": data["time"][i][start:end],
-            "pitch": data["pitch"][i][start:end],
-        }
-        seq_len = len(inputs["time"])
-        if training and args.augmentation:
-            # Randomly transpose the music by -5~+6 semitones
-            inputs["pitch"] = inputs["pitch"] + random.randint(-5, 6)
-            # Handle out-of-range pitch
-            inputs["pitch"][inputs["pitch"] > 127] -= 12  # an octave lower
-            inputs["pitch"][inputs["pitch"] < 0] += 12  # an octave higher
+def get_arrays(notes, labels, n_tracks, args):
+    """Process data and return as a dictionary of arrays."""
+    # Create a dictionary of arrays initialized to zeros
+    seq_len = min(len(notes), args.max_len)
+    inputs = {
+        "time": np.zeros((seq_len,), int),
+        "pitch": np.zeros((seq_len,), int),
+    }
+    if args.use_duration:
+        inputs["duration"] = np.zeros((seq_len,), int)
+
+    # Fill in data
+    for i, note in enumerate(notes[:seq_len]):
+        inputs["time"][i] = note[0]
+        inputs["pitch"][i] = note[1] + 1  # 0 is reserved for 'no pitch'
         if args.use_duration:
-            inputs["duration"] = data["duration"][i][start:end]
-        if args.use_onset_hint:
-            n_tracks = len(data["onset_hint"][i])
-            inputs["onset_hint"] = np.zeros((seq_len, n_tracks))
-            for idx, onset in enumerate(data["onset_hint"][i]):
-                inputs["onset_hint"][:onset, idx] = -1
-                inputs["onset_hint"][onset + 1 :, idx] = 1
-        if args.use_pitch_hint:
-            inputs["pitch_hint"] = data["pitch_hint"][i]
-        if args.autoregressive:
-            inputs["previous_label"] = np.roll(labels[i][start:end], 1, 0)
-            inputs["previous_label"][0] = 0
-        # Pad arrays with zeros at the end
-        if training and seq_len < args.seq_len:
-            for key in inputs:
-                if key == "onset_hint":
-                    inputs["onset_hint"] = np.pad(
-                        inputs["onset_hint"],
-                        ((0, args.seq_len - seq_len), (0, 0)),
+            inputs["duration"][i] = note[2]
+
+    if args.use_onset_hint:
+        inputs["onset_hint"] = np.zeros((seq_len, n_tracks))
+    if args.use_pitch_hint:
+        inputs["pitch_hint"] = np.zeros((n_tracks,), int)
+    if args.use_onset_hint or args.use_pitch_hint:
+        for i in range(n_tracks):
+            nonzero = (labels == i).nonzero()[0]
+            if nonzero.size:
+                if args.use_onset_hint:
+                    inputs["onset_hint"][: nonzero[0], i] = -1
+                    inputs["onset_hint"][nonzero[0] + 1 :, i] = 1
+                if args.use_pitch_hint:
+                    inputs["pitch_hint"][i] = round(
+                        np.mean(inputs["pitch"][nonzero])
                     )
-                elif key != "pitch_hint":
-                    inputs[key] = np.pad(
-                        inputs[key], (0, args.seq_len - seq_len)
-                    )
-            label = np.pad(labels[i][start:end], (0, args.seq_len - seq_len))
-        else:
-            label = labels[i][start:end]
-        yield inputs, label
+    if args.autoregressive:
+        inputs["previous_label"] = np.roll(labels[:seq_len], 1, 0)
+        inputs["previous_label"][0] = 0
+
+    for key in inputs:
+        inputs[key] = np.expand_dims(inputs[key], 0)
+
+    return inputs
+
+
+def process(filename, model, save, args):
+    """Process a file."""
+    # Load the data
+    music = muspy.load(filename)
+
+    # Get track names and number of tracks
+    names = list(CONFIG[args.dataset]["programs"].keys())
+    n_tracks = len(names)
+
+    # Collect notes and labels
+    notes, labels = [], []
+    for track in music.tracks:
+        # Skip drum track or empty track
+        if track.is_drum or not track.notes:
+            continue
+        # Get label
+        label = names.index(track.name)
+        # Collect notes and labels
+        for note in track.notes:
+            notes.append((note.time, note.pitch, note.duration, note.velocity))
+            labels.append(label)
+
+    # Sort the notes and labels (using notes as keys)
+    notes, labels = zip(*sorted(zip(notes, labels), key=itemgetter(0)))
+    notes = np.array(notes)
+    labels = np.array(labels)
+
+    # Get inputs
+    inputs = get_arrays(notes, labels, n_tracks, args)
+
+    # Predict the labels
+    raw_predictions = model.predict(inputs)
+    predictions = np.argmax(raw_predictions[..., 1:], -1).flatten()
+
+    # Return early if no need to save the sample
+    if not save:
+        return predictions, labels
+
+    # Shorthands
+    sample_dir = args.output_dir / "samples"
+    programs = CONFIG[args.dataset]["programs"]
+    colors = CONFIG["colors"]
+
+    # Reconstruct and save the music using the predicted labels
+    music_pred = music.deepcopy()
+    music_pred.tracks = reconstruct_tracks(notes, predictions, programs)
+    pianoroll_pred = save_sample(
+        music_pred, sample_dir, f"{filename.stem}_pred", colors
+    )
+
+    # Reconstruct and save the music using the original labels
+    music_truth = music.deepcopy()
+    music_truth.tracks = reconstruct_tracks(notes, labels, programs)
+    pianoroll_truth = save_sample(
+        music_truth, sample_dir, f"{filename.stem}_truth", colors
+    )
+
+    # Save comparison
+    save_comparison(
+        pianoroll_truth, pianoroll_pred, sample_dir, f"{filename.stem}_comp"
+    )
+
+    # Save the samples with drums
+    if CONFIG[args.dataset]["has_drums"]:
+        music_pred.tracks.append(music.tracks[-1])  # append drum track
+        pianoroll_pred = save_sample(
+            music_pred, sample_dir, f"{filename.stem}_pred_drums", colors
+        )
+        music_truth.tracks.append(music.tracks[-1])  # append drum track
+        pianoroll_truth = save_sample(
+            music_truth, sample_dir, f"{filename.stem}_truth_drums", colors
+        )
+        save_comparison(
+            pianoroll_truth,
+            pianoroll_pred,
+            sample_dir,
+            f"{filename.stem}_comp_drums",
+        )
+
+    return predictions, labels
 
 
 def main():
@@ -215,10 +298,16 @@ def main():
     args = parse_arguments()
     args.output_dir.mkdir(exist_ok=True)
 
+    # Make sure sample directories exist
+    (args.output_dir / "samples").mkdir(exist_ok=True)
+    for subdir in ("json", "mid", "png"):
+        (args.output_dir / "samples" / subdir).mkdir(exist_ok=True)
+
     # Configure TensorFlow
-    gpus = tf.config.list_physical_devices("GPU")
-    tf.config.set_visible_devices(gpus[args.gpu], "GPU")
-    tf.config.experimental.set_memory_growth(gpus[args.gpu], True)
+    if args.gpu is not None:
+        gpus = tf.config.list_physical_devices("GPU")
+        tf.config.set_visible_devices(gpus[args.gpu], "GPU")
+        tf.config.experimental.set_memory_growth(gpus[args.gpu], True)
 
     # Set up loggers
     setup_loggers(
@@ -253,30 +342,6 @@ def main():
     if args.autoregressive:
         output_shapes[0]["previous_label"] = (None,)
         output_types[0]["previous_label"] = tf.int32
-
-    # Load test data
-    logging.info("Loading test data...")
-    test_data = {
-        "time": load_npz(args.input_dir / "time_test.npz"),
-        "pitch": load_npz(args.input_dir / "pitch_test.npz"),
-    }
-    if args.use_duration:
-        test_data["duration"] = load_npz(args.input_dir / "duration_test.npz")
-    if args.use_onset_hint:
-        test_data["onset_hint"] = load_npz(
-            args.input_dir / "onset_hint_test.npz"
-        )
-    if args.use_pitch_hint:
-        test_data["pitch_hint"] = load_npz(
-            args.input_dir / "pitch_hint_test.npz"
-        )
-    test_labels = load_npz(args.input_dir / "label_test.npz")
-    test_dataset = tf.data.Dataset.from_generator(
-        lambda: loader(test_data, test_labels, training=False, args=args),
-        output_shapes=output_shapes,
-        output_types=output_types,
-    )
-    test_dataset = test_dataset.batch(1).prefetch(3)
 
     # === Model ===
 
@@ -327,33 +392,79 @@ def main():
     model = tf.keras.Model(inputs, output)
 
     # Load trained weights
-    model.load_weights(str(args.output_dir / "best_model.hdf5"))
+    model.load_weights(str(args.model_filename))
 
-    # Compile the model
-    logging.info("Compiling model...")
+    # === Testing ===
 
-    def masked_acc(y_true, y_pred):
-        accuracies = tf.equal(
-            y_true, 1 + tf.cast(tf.argmax(y_pred[..., 1:], axis=2), tf.float32)
-        )
-        mask = tf.math.logical_not(tf.math.equal(y_true, 0))
-        accuracies = tf.cast(tf.math.logical_and(mask, accuracies), tf.float32)
-        mask = tf.cast(mask, tf.float32)
-        return tf.reduce_sum(accuracies) / tf.reduce_sum(mask)
+    # Load sample filenames
+    with open(args.input_dir / "samples.txt") as f:
+        sample_filenames = [line.rstrip() for line in f]
 
-    model.compile(
-        loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-        optimizer="adam",
-        metrics=[masked_acc],
+    # Iterate over the test data
+    logging.info("Start testing...")
+    filenames = list(args.input_dir.glob("test/*.json"))
+    assert filenames, "No input files found."
+    is_samples = (filename.stem in sample_filenames for filename in filenames)
+    results = []
+    for filename, is_sample in zip(
+        tqdm.tqdm(filenames, disable=args.quiet, ncols=80), is_samples
+    ):
+        results.append(process(filename, model, is_sample, args))
+
+    # Compute accuracy
+    correct, total = 0, 0
+    accuracies = []
+    all_predictions = []
+    all_labels = []
+    for result in results:
+        if result is None:
+            continue
+        predictions, labels = result
+        all_predictions.append(predictions)
+        all_labels.append(labels)
+        count_correct = np.count_nonzero(predictions == labels)
+        correct += count_correct
+        total += len(labels)
+        accuracies.append(count_correct / total)
+    accuracy = correct / total
+    logging.info(f"Test accuracy : {round(accuracy * 100)}% ({accuracy})")
+
+    # Save predictions and labels
+    np.savez(args.output_dir / "predictions.npz", *all_predictions)
+    np.savez(args.output_dir / "labels.npz", *all_labels)
+
+    # Compute unweighted accuracies
+    accuracies = np.array(accuracies)
+    mean_acc = np.mean(accuracies)
+    std_acc = np.std(accuracies)
+    min_acc = np.min(accuracies)
+    max_acc = np.max(accuracies)
+    logging.info("Unweighted test accuracy :")
+    logging.info(f"- Average : {round(mean_acc* 100)}% ({mean_acc})")
+    logging.info(f"- Min : {round(min_acc* 100)}% ({min_acc})")
+    logging.info(f"- Max : {round(max_acc* 100)}% ({max_acc})")
+    logging.info(f"- Standard deviation : {round(std_acc* 100)}% ({std_acc})")
+    np.savetxt(args.output_dir / "accuracies.txt", accuracies)
+
+    # Compute F1 score
+    concat_predictions = np.concatenate(all_predictions)
+    concat_labels = np.concatenate(all_labels)
+    f1_score_micro = sklearn.metrics.f1_score(
+        concat_predictions, concat_labels, average="micro"
     )
+    logging.info(f"F1 score (micro) : {f1_score_micro}")
+    f1_score_macro = sklearn.metrics.f1_score(
+        concat_predictions, concat_labels, average="macro"
+    )
+    logging.info(f"F1 score (macro) : {f1_score_macro}")
 
-    # === Training ===
-
-    # Train the model
-    logging.info("Testing model...")
-    model.evaluate(test_dataset, batch_size=1, verbose=(1 - args.quiet))
-
-    # TODO: Use predict -> compute metrics & save samples
+    # Compute confusion matrix
+    confusion_matrix = sklearn.metrics.confusion_matrix(
+        concat_predictions, concat_labels, normalize="all"
+    )
+    with np.printoptions(precision=4, suppress=True):
+        logging.info("Confusion_matrix : ")
+        logging.info(confusion_matrix)
 
 
 if __name__ == "__main__":
