@@ -4,7 +4,12 @@ from setuptools import find_packages, setup
 setup(
     name="arranger",
     packages=find_packages(),
-    install_requires=["muspy>=0.3", "imageio>=2.9", "tensorflow>=2.1,<2.3"],
+    install_requires=[
+        "muspy>=0.3",
+        "imageio>=2.9",
+        "tensorflow<2.4",
+        "scikit-learn < 1.0",
+    ],
     extras_require={
         "dev": [
             "black>=19.0",
