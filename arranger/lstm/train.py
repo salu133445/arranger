@@ -35,6 +35,14 @@ def parse_arguments():
         help="dataset key",
     )
     parser.add_argument(
+        "-nau",
+        "--no_augmentation",
+        dest="augmentation",
+        action="store_false",
+        help="whether to use data augmentation",
+    )
+    parser.set_defaults(augmentation=True)
+    parser.add_argument(
         "-sl",
         "--seq_len",
         type=int,
@@ -47,12 +55,6 @@ def parse_arguments():
         type=int,
         default=2000,
         help="maximum sequence length for validation",
-    )
-    parser.add_argument(
-        "-au",
-        "--augmentation",
-        action="store_true",
-        help="whether to use data augmentation",
     )
     parser.add_argument(
         "-di",
@@ -96,7 +98,6 @@ def parse_arguments():
         action="store_true",
         help="use duration embedding",
     )
-
     parser.add_argument(
         "-r",
         "--resolution",
@@ -115,7 +116,7 @@ def parse_arguments():
         "-md",
         "--max_duration",
         type=int,
-        default=96,
+        default=192,
         help="maximum duration",
     )
     parser.add_argument(
@@ -158,7 +159,7 @@ def parse_arguments():
         "-p",
         "--patience",
         type=int,
-        default=5,
+        default=3,
         help="patience for early stopping",
     )
     parser.add_argument("-g", "--gpu", type=int, help="GPU device to use")

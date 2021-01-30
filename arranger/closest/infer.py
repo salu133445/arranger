@@ -315,7 +315,10 @@ def main():
 
     # Iterate over the test data
     logging.info("Start testing...")
-    filenames = list(args.input_dir.glob("test/*.json"))
+    if args.dataset == "lmd":
+        filenames = list(args.input_dir.glob("test/*.json.gz"))
+    else:
+        filenames = list(args.input_dir.glob("test/*.json"))
     assert filenames, "No input files found."
     is_samples = (filename.stem in sample_filenames for filename in filenames)
 

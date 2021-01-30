@@ -139,9 +139,9 @@ def main():
 
     # === Training data ===
     logging.info("Processing training data...")
-
+    ext = "json" if args.dataset != "lmd" else "json.gz"
     for subset in ("train", "valid", "test"):
-        filenames = list(args.input_dir.glob(f"{subset}/*.json"))
+        filenames = list(args.input_dir.glob(f"{subset}/*.{ext}"))
         if args.n_jobs == 1:
             data = []
             for filename in tqdm.tqdm(filenames, disable=args.quiet, ncols=80):

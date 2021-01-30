@@ -240,17 +240,18 @@ def main():
 
     # Iterate over the test data
     logging.info("Start testing...")
+    extension = "json" if args.dataset != "lmd" else "json.gz"
     if args.oracle:
         # NOTE: As computing the oracle takes more time, we only use a subset
         # of the test set (specifically, the sample set).
         filenames = [
             filename
-            for filename in args.input_dir.glob("test/*.json")
+            for filename in args.input_dir.glob(f"test/*.{extension}")
             if filename.stem in sample_filenames
         ]
         is_samples = [True] * len(filenames)
     else:
-        filenames = list(args.input_dir.glob("test/*.json"))
+        filenames = list(args.input_dir.glob(f"test/*.{extension}"))
         is_samples = (
             filename.stem in sample_filenames for filename in filenames
         )
