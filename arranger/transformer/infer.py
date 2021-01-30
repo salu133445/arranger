@@ -407,16 +407,33 @@ def main():
     with open(args.input_dir / "samples.txt") as f:
         sample_filenames = [line.rstrip() for line in f]
 
+    # Collect filenames
+    logging.info("Collecting filenames...")
+    extension = "json" if args.dataset != "lmd" else "json.gz"
+    if args.oracle:
+        # NOTE: As computing the oracle takes more time, we only use a subset
+        # of the test set (specifically, the sample set).
+        filenames = [
+            filename
+            for filename in args.input_dir.glob(f"test/*.{extension}")
+            if filename.stem in sample_filenames
+        ]
+        is_samples = [True] * len(filenames)
+    else:
+        filenames = list(args.input_dir.glob(f"test/*.{extension}"))
+        is_samples = (
+            filename.stem in sample_filenames for filename in filenames
+        )
+    assert filenames, "No input files found."
+
     # Iterate over the test data
     logging.info("Start testing...")
-    filenames = list(args.input_dir.glob("test/*.json"))
-    assert filenames, "No input files found."
-    is_samples = (filename.stem in sample_filenames for filename in filenames)
-    results = []
-    for filename, is_sample in zip(
-        tqdm.tqdm(filenames, disable=args.quiet, ncols=80), is_samples
-    ):
-        results.append(process(filename, model, is_sample, args))
+    results = [
+        process(filename, model, is_sample, args)
+        for filename, is_sample in zip(
+            tqdm.tqdm(filenames, disable=args.quiet, ncols=80), is_samples
+        )
+    ]
 
     # Compute metrics
     compute_metrics(results, args.output_dir)

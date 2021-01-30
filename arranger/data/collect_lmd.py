@@ -30,6 +30,12 @@ def parse_arguments():
         "-o", "--output_dir", type=Path, required=True, help="output directory"
     )
     parser.add_argument(
+        "-id",
+        "--id_list",
+        type=Path,
+        help="filename of the cleansed ID list",
+    )
+    parser.add_argument(
         "-s",
         "--samples",
         type=int,
@@ -165,12 +171,24 @@ def main():
     # Set random seed
     random.seed(0)
 
-    # Start collecting data
-    logging.info("Start collecting data...")
-    filenames = list(args.input_dir.rglob("*.mid"))
+    # Load cleansed IDs
+    logging.info("Loading IDs...")
+    with open(args.id_list) as f:
+        file_ids = set(line.split()[0] for line in f)
+
+    # Get filenames
+    filenames = [
+        filename
+        for filename in args.input_dir.rglob("*.mid")
+        if filename.stem in file_ids
+    ]
     splits = random.choices(
         ("train", "valid", "test"), (8, 1, 1), k=len(filenames)
     )  # Select splits for files randomly using an 8:1:1 train-valid-test ratio
+    assert filenames, "No input files found."
+
+    # Start collecting data
+    logging.info("Start collecting data...")
     if args.n_jobs == 1:
         count = 0
         filenames = tqdm.tqdm(filenames, disable=args.quiet, ncols=80)

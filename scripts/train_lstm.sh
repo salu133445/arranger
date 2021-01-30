@@ -8,7 +8,7 @@ case "$1" in
     PATIENCE=10
     ;;
   nes|lmd)
-    PATIENCE=3
+    PATIENCE=5
     ;;
   *)
     echo "Dataset must be one of 'bach', 'musicnet', 'nes' or 'lmd'."
@@ -22,66 +22,66 @@ do
       python3 arranger/lstm/train.py \
         -i "$HOME/data/arranger/$1/preprocessed/" \
         -o "$HOME/data/arranger/exp/$1/lstm/default/" \
-        -d "$1" -p $PATIENCE -g "$2" -q
+        -d "$1" -p $PATIENCE -g "$2"
 
       python3 arranger/lstm/train.py \
         -i "$HOME/data/arranger/$1/preprocessed/" \
         -o "$HOME/data/arranger/exp/$1/lstm/default_embedding/" \
-        -d "$1" -p $PATIENCE -g "$2" -q -pe -te -fi
+        -d "$1" -p $PATIENCE -g "$2" -pe -te -fi
 
       python3 arranger/lstm/train.py \
         -i "$HOME/data/arranger/$1/preprocessed/" \
         -o "$HOME/data/arranger/exp/$1/lstm/default_embedding_onsethint/" \
-        -d "$1" -p $PATIENCE -g "$2" -q -pe -te -fi -oh
+        -d "$1" -p $PATIENCE -g "$2" -pe -te -fi -oh
 
       python3 arranger/lstm/train.py \
         -i "$HOME/data/arranger/$1/preprocessed/" \
         -o "$HOME/data/arranger/exp/$1/lstm/default_embedding_onsethint_duration/" \
-        -d "$1" -p $PATIENCE -g "$2" -q -pe -te -fi -oh -di -de
+        -d "$1" -p $PATIENCE -g "$2" -pe -te -fi -oh -di -de
       ;;
 
     ar|autoregressive)
       python3 arranger/lstm/train.py \
         -i "$HOME/data/arranger/$1/preprocessed/" \
         -o "$HOME/data/arranger/exp/$1/lstm/autoregressive/" \
-        -d "$1" -p $PATIENCE -g "$2" -q -ar
+        -d "$1" -p $PATIENCE -g "$2" -ar
 
       python3 arranger/lstm/train.py \
         -i "$HOME/data/arranger/$1/preprocessed/" \
         -o "$HOME/data/arranger/exp/$1/lstm/autoregressive_embedding/" \
-        -d "$1" -p $PATIENCE -g "$2" -q -ar -pe -te -fi
+        -d "$1" -p $PATIENCE -g "$2" -ar -pe -te -fi
 
       python3 arranger/lstm/train.py \
         -i "$HOME/data/arranger/$1/preprocessed/" \
         -o "$HOME/data/arranger/exp/$1/lstm/autoregressive_embedding_onsethint/" \
-        -d "$1" -p $PATIENCE -g "$2" -q -ar -pe -te -fi -oh
+        -d "$1" -p $PATIENCE -g "$2" -ar -pe -te -fi -oh
 
       python3 arranger/lstm/train.py \
         -i "$HOME/data/arranger/$1/preprocessed/" \
         -o "$HOME/data/arranger/exp/$1/lstm/autoregressive_embedding_onsethint_duration/" \
-        -d "$1" -p $PATIENCE -g "$2" -q -ar -pe -te -fi -oh -di -de
+        -d "$1" -p $PATIENCE -g "$2" -ar -pe -te -fi -oh -di -de
       ;;
 
     bi|bidirectional)
       python3 arranger/lstm/train.py \
         -i "$HOME/data/arranger/$1/preprocessed/" \
         -o "$HOME/data/arranger/exp/$1/lstm/bidirectional/" \
-        -d "$1" -p $PATIENCE -g "$2" -q -bi
+        -d "$1" -p $PATIENCE -g "$2" -bi
 
       python3 arranger/lstm/train.py \
         -i "$HOME/data/arranger/$1/preprocessed/" \
         -o "$HOME/data/arranger/exp/$1/lstm/bidirectional_embedding/" \
-        -d "$1" -p $PATIENCE -g "$2" -q -bi -pe -te -fi
+        -d "$1" -p $PATIENCE -g "$2" -bi -pe -te -fi
 
       python3 arranger/lstm/train.py \
         -i "$HOME/data/arranger/$1/preprocessed/" \
         -o "$HOME/data/arranger/exp/$1/lstm/bidirectional_embedding_onsethint/" \
-        -d "$1" -p $PATIENCE -g "$2" -q -bi -pe -te -fi -oh
+        -d "$1" -p $PATIENCE -g "$2" -bi -pe -te -fi -oh
 
       python3 arranger/lstm/train.py \
         -i "$HOME/data/arranger/$1/preprocessed/" \
         -o "$HOME/data/arranger/exp/$1/lstm/bidirectional_embedding_onsethint_duration/" \
-        -d "$1" -p $PATIENCE -g "$2" -q -bi -pe -te -fi -oh -di -de
+        -d "$1" -p $PATIENCE -g "$2" -bi -pe -te -fi -oh -di -de
       ;;
 
     *)

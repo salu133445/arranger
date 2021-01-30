@@ -215,8 +215,11 @@ def main():
     """Main function."""
     # Parse command-line arguments
     args = parse_arguments()
-    args.output_dir.mkdir(exist_ok=True)
     assert args.n_jobs >= 1, "`n_jobs` must be a positive integer."
+    args.output_dir.mkdir(exist_ok=True)
+    if args.oracle:
+        args.output_dir = args.output_dir / "oracle"
+        args.output_dir.mkdir(exist_ok=True)
 
     # Make sure sample directories exist
     (args.output_dir / "samples").mkdir(exist_ok=True)
@@ -238,8 +241,8 @@ def main():
     with open(args.input_dir / "samples.txt") as f:
         sample_filenames = [line.rstrip() for line in f]
 
-    # Iterate over the test data
-    logging.info("Start testing...")
+    # Collect filenames
+    logging.info("Collecting filenames...")
     extension = "json" if args.dataset != "lmd" else "json.gz"
     if args.oracle:
         # NOTE: As computing the oracle takes more time, we only use a subset
@@ -256,8 +259,10 @@ def main():
             filename.stem in sample_filenames for filename in filenames
         )
     assert filenames, "No input files found."
+
+    # Iterate over the test data
+    logging.info("Start testing...")
     if args.n_jobs == 1:
-        filenames = tqdm.tqdm(filenames, disable=args.quiet, ncols=80)
         results = [
             process(
                 filename,
@@ -267,7 +272,9 @@ def main():
                 args.output_dir,
                 is_sample,
             )
-            for filename, is_sample in zip(filenames, is_samples)
+            for filename, is_sample in zip(
+                tqdm.tqdm(filenames, disable=args.quiet, ncols=80), is_samples
+            )
         ]
     else:
         results = joblib.Parallel(args.n_jobs, verbose=5)(

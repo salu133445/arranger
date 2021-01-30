@@ -8,7 +8,7 @@ case "$1" in
     PATIENCE=10
     ;;
   nes|lmd)
-    PATIENCE=3
+    PATIENCE=5
     ;;
   *)
     echo "Dataset must be one of 'bach', 'musicnet', 'nes' or 'lmd'."
@@ -22,44 +22,44 @@ do
       python3 arranger/transformer/train.py \
         -i "$HOME/data/arranger/$1/preprocessed/" \
         -o "$HOME/data/arranger/exp/$1/transformer/default/" \
-        -d "$1" -p $PATIENCE -g "$2" -q
+        -d "$1" -p $PATIENCE -g "$2"
 
       python3 arranger/transformer/train.py \
         -i "$HOME/data/arranger/$1/preprocessed/" \
         -o "$HOME/data/arranger/exp/$1/transformer/default_embedding/" \
-        -d "$1" -p $PATIENCE -g "$2" -q -pe -te -fi
+        -d "$1" -p $PATIENCE -g "$2" -pe -te -fi
 
       python3 arranger/transformer/train.py \
         -i "$HOME/data/arranger/$1/preprocessed/" \
         -o "$HOME/data/arranger/exp/$1/transformer/default_embedding_onsethint/" \
-        -d "$1" -p $PATIENCE -g "$2" -q -pe -te -fi -oh
+        -d "$1" -p $PATIENCE -g "$2" -pe -te -fi -oh
 
       python3 arranger/transformer/train.py \
         -i "$HOME/data/arranger/$1/preprocessed/" \
         -o "$HOME/data/arranger/exp/$1/transformer/default_embedding_onsethint_duration/" \
-        -d "$1" -p $PATIENCE -g "$2" -q -pe -te -fi -oh -di -de
+        -d "$1" -p $PATIENCE -g "$2" -pe -te -fi -oh -di -de
       ;;
 
     ar|autoregressive)
       python3 arranger/transformer/train.py \
         -i "$HOME/data/arranger/$1/preprocessed/" \
         -o "$HOME/data/arranger/exp/$1/transformer/autoregressive/" \
-        -d "$1" -p $PATIENCE -g "$2" -q -ar
+        -d "$1" -p $PATIENCE -g "$2" -ar
 
       python3 arranger/transformer/train.py \
         -i "$HOME/data/arranger/$1/preprocessed/" \
         -o "$HOME/data/arranger/exp/$1/transformer/autoregressive_embedding/" \
-        -d "$1" -p $PATIENCE -g "$2" -q -ar -pe -te -fi
+        -d "$1" -p $PATIENCE -g "$2" -ar -pe -te -fi
 
       python3 arranger/transformer/train.py \
         -i "$HOME/data/arranger/$1/preprocessed/" \
         -o "$HOME/data/arranger/exp/$1/transformer/autoregressive_embedding_onsethint/" \
-        -d "$1" -p $PATIENCE -g "$2" -q -ar -pe -te -fi -oh
+        -d "$1" -p $PATIENCE -g "$2" -ar -pe -te -fi -oh
 
       python3 arranger/transformer/train.py \
         -i "$HOME/data/arranger/$1/preprocessed/" \
         -o "$HOME/data/arranger/exp/$1/transformer/autoregressive_embedding_onsethint_duration/" \
-        -d "$1" -p $PATIENCE -g "$2" -q -ar -pe -te -fi -oh -di -de
+        -d "$1" -p $PATIENCE -g "$2" -ar -pe -te -fi -oh -di -de
       ;;
 
     *)

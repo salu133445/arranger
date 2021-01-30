@@ -132,10 +132,14 @@ def main():
     # Set random seed
     random.seed(0)
 
-    # Start collecting data
-    logging.info("Start collecting data...")
+    # Collect filenames
+    logging.info("Collecting filenames...")
     filenames = list(args.input_dir.rglob("*.mid"))
     splits = (filename.parent.name for filename in filenames)
+    assert filenames, "No input files found."
+
+    # Start collecting data
+    logging.info("Start collecting data...")
     if args.n_jobs == 1:
         count = 0
         filenames = tqdm.tqdm(filenames, disable=args.quiet, ncols=80)

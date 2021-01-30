@@ -157,6 +157,13 @@ def parse_arguments():
         "-e", "--epoch", type=int, default=100, help="maximum number of epochs"
     )
     parser.add_argument(
+        "-s",
+        "--steps_per_epoch",
+        type=int,
+        default=500,
+        help="number of steps per epochs",
+    )
+    parser.add_argument(
         "-p",
         "--patience",
         type=int,
@@ -424,6 +431,7 @@ def main():
         train_dataset,
         batch_size=args.batch_size,
         epochs=args.epoch,
+        steps_per_epoch=args.steps_per_epoch,
         validation_data=val_dataset,
         validation_batch_size=1,
         callbacks=[model_checkpoint, csv_logger, early_stopping],

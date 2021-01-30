@@ -114,8 +114,8 @@ def main():
     """Main function."""
     # Parse command-line arguments
     args = parse_arguments()
-    args.output_dir.mkdir(exist_ok=True)
     assert args.n_jobs >= 1, "`n_jobs` must be a positive integer."
+    args.output_dir.mkdir(exist_ok=True)
 
     # Make sure sample directories exist
     (args.output_dir / "samples").mkdir(exist_ok=True)
@@ -135,7 +135,8 @@ def main():
 
     # Iterate over the training data
     logging.info("Start learning...")
-    filenames = list(args.input_dir.glob("train/*.json"))
+    extension = "json" if args.dataset != "lmd" else "json.gz"
+    filenames = list(args.input_dir.glob(f"train/*.{extension}"))
     assert filenames, "No input files found."
     if args.n_jobs == 1:
         counts = sum(

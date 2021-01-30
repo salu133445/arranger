@@ -290,8 +290,8 @@ def main():
     """Main function."""
     # Parse command-line arguments
     args = parse_arguments()
-    args.output_dir.mkdir(exist_ok=True)
     assert args.n_jobs >= 1, "`n_jobs` must be a positive integer."
+    args.output_dir.mkdir(exist_ok=True)
 
     # Make sure sample directories exist
     (args.output_dir / "samples").mkdir(exist_ok=True)
@@ -313,17 +313,16 @@ def main():
     with open(args.input_dir / "samples.txt") as f:
         sample_filenames = [line.rstrip() for line in f]
 
-    # Iterate over the test data
-    logging.info("Start testing...")
-    if args.dataset == "lmd":
-        filenames = list(args.input_dir.glob("test/*.json.gz"))
-    else:
-        filenames = list(args.input_dir.glob("test/*.json"))
+    # Collect filenames
+    logging.info("Collecting filenames...")
+    extension = "json" if args.dataset != "lmd" else "json.gz"
+    filenames = list(args.input_dir.glob(f"test/*.{extension}"))
     assert filenames, "No input files found."
     is_samples = (filename.stem in sample_filenames for filename in filenames)
 
+    # Iterate over the test data
+    logging.info("Start testing...")
     if args.n_jobs == 1:
-        filenames = tqdm.tqdm(filenames, disable=args.quiet, ncols=80)
         results = [
             process(
                 filename,
@@ -332,7 +331,7 @@ def main():
                 args.output_dir,
                 is_sample,
             )
-            for filename, is_sample in zip(filenames, is_samples)
+            for filename, is_sample in zip(tqdm.tqdm(filenames, disable=args.quiet, ncols=80), is_samples)
         ]
     else:
         results = joblib.Parallel(args.n_jobs, verbose=5)(
