@@ -10,6 +10,7 @@ import numpy as np
 import tqdm
 
 from arranger.utils import (
+    compute_metrics,
     load_config,
     reconstruct_tracks,
     save_comparison,
@@ -162,12 +163,9 @@ def process(filename, dataset, permutation, oracle, output_dir, save):
     # Predict the labels using the optimal zone boundaries and permutation
     predictions = predict(notes, boundaries, permutation)
 
-    # Count correct predictions
-    count_correct = np.count_nonzero(predictions == labels)
-
     # Return early if no need to save the sample
     if not save:
-        return count_correct, len(notes)
+        return predictions, labels
 
     # Shorthands
     sample_dir = output_dir / "samples"
@@ -210,7 +208,7 @@ def process(filename, dataset, permutation, oracle, output_dir, save):
             f"{filename.stem}_comp_drums",
         )
 
-    return count_correct, len(notes)
+    return predictions, labels
 
 
 def main():
@@ -283,15 +281,8 @@ def main():
             for filename, is_sample in zip(filenames, is_samples)
         )
 
-    # Compute accuracy
-    correct, total = 0, 0
-    for result in results:
-        if result is None:
-            continue
-        correct += result[0]
-        total += result[1]
-    accuracy = correct / total
-    logging.info(f"Test accuracy : {round(accuracy * 100)}% ({accuracy})")
+    # Compute metrics
+    compute_metrics(results, args.output_dir)
 
 
 if __name__ == "__main__":

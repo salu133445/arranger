@@ -5,6 +5,7 @@ from pathlib import Path
 import imageio
 import muspy
 import numpy as np
+import sklearn.metrics
 import yaml
 
 
@@ -85,6 +86,28 @@ def save_sample(music, sample_dir, filename, colors):
 
 def save_comparison(pianoroll, pianoroll_pred, sample_dir, filename):
     """Save comparisons of piano rolls."""
+    if pianoroll.shape[1] > pianoroll_pred.shape[1]:
+        pad_width = pianoroll.shape[1] - pianoroll_pred.shape[1]
+        pianoroll_pred = np.pad(
+            pianoroll_pred,
+            (
+                (0, 0),
+                (0, pad_width),
+                (0, 0),
+            ),
+            constant_values=255,
+        )
+    elif pianoroll.shape[1] < pianoroll_pred.shape[1]:
+        pad_width = pianoroll_pred.shape[1] - pianoroll.shape[1]
+        pianoroll = np.pad(
+            pianoroll,
+            (
+                (0, 0),
+                (0, pad_width),
+                (0, 0),
+            ),
+            constant_values=255,
+        )
     binarized = np.tile((pianoroll < 250).any(-1, keepdims=True), (1, 1, 3))
     uncolored = (255 * (1 - binarized)).astype(np.uint8)
     pianoroll_comp = np.concatenate((uncolored, pianoroll, pianoroll_pred), 0)
@@ -103,3 +126,57 @@ def load_npy(filename):
 def load_npz(filename):
     """Load a NPZ file into a list of arrays."""
     return [arr.astype(np.int32) for arr in np.load(filename).values()]
+
+
+def compute_metrics(results, output_dir):
+    """Compute the metrics."""
+    # Compute accuracy
+    correct, total = 0, 0
+    accuracies = []
+    all_predictions = []
+    all_labels = []
+    for result in results:
+        if result is None:
+            continue
+        predictions, labels = result
+        all_predictions.append(predictions)
+        all_labels.append(labels)
+        count_correct = np.count_nonzero(predictions == labels)
+        correct += count_correct
+        total += len(labels)
+        accuracies.append(count_correct / total)
+    accuracy = correct / total
+    logging.info(f"Test accuracy : {round(accuracy * 100)}% ({accuracy})")
+
+    # Save predictions and labels
+    np.savez(output_dir / "predictions.npz", *all_predictions)
+    np.savez(output_dir / "labels.npz", *all_labels)
+
+    # Compute unweighted accuracies
+    accuracies = np.array(accuracies)
+    mean_acc = np.mean(accuracies)
+    std_acc = np.std(accuracies)
+    min_acc = np.min(accuracies)
+    max_acc = np.max(accuracies)
+    logging.info("Unweighted test accuracy :")
+    logging.info(f"- Average : {round(mean_acc* 100)}% ({mean_acc})")
+    logging.info(f"- Min : {round(min_acc* 100)}% ({min_acc})")
+    logging.info(f"- Max : {round(max_acc* 100)}% ({max_acc})")
+    logging.info(f"- Standard deviation : {round(std_acc* 100)}% ({std_acc})")
+    np.savetxt(output_dir / "accuracies.txt", accuracies)
+
+    # Compute F1 score
+    concat_predictions = np.concatenate(all_predictions)
+    concat_labels = np.concatenate(all_labels)
+    f1_score_macro = sklearn.metrics.f1_score(
+        concat_labels, concat_predictions, average="macro"
+    )
+    logging.info(f"F1 score (macro) : {f1_score_macro}")
+
+    # Compute confusion matrix
+    confusion_matrix = sklearn.metrics.confusion_matrix(
+        concat_labels, concat_predictions, normalize="all"
+    )
+    with np.printoptions(precision=4, suppress=True):
+        logging.info("Confusion_matrix : ")
+        logging.info(confusion_matrix)

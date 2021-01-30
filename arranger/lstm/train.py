@@ -49,7 +49,7 @@ def parse_arguments():
         help="maximum sequence length for validation",
     )
     parser.add_argument(
-        "-a",
+        "-au",
         "--augmentation",
         action="store_true",
         help="whether to use data augmentation",
@@ -96,6 +96,14 @@ def parse_arguments():
         action="store_true",
         help="use duration embedding",
     )
+
+    parser.add_argument(
+        "-r",
+        "--resolution",
+        type=int,
+        default=24,
+        help="resolution (time step per quarter note)",
+    )
     parser.add_argument(
         "-mb",
         "--max_beat",
@@ -111,7 +119,7 @@ def parse_arguments():
         help="maximum duration",
     )
     parser.add_argument(
-        "-au",
+        "-ar",
         "--autoregressive",
         action="store_true",
         help="use autoregressive LSTM",
@@ -145,6 +153,13 @@ def parse_arguments():
     )
     parser.add_argument(
         "-e", "--epoch", type=int, default=100, help="maximum number of epochs"
+    )
+    parser.add_argument(
+        "-p",
+        "--patience",
+        type=int,
+        default=5,
+        help="patience for early stopping",
     )
     parser.add_argument("-g", "--gpu", type=int, help="GPU device to use")
     parser.add_argument(
@@ -401,7 +416,7 @@ def main():
     csv_logger = tf.keras.callbacks.CSVLogger(
         str(args.output_dir / "training.log")
     )
-    early_stopping = tf.keras.callbacks.EarlyStopping(patience=5)
+    early_stopping = tf.keras.callbacks.EarlyStopping(patience=args.patience)
     model.fit(
         train_dataset,
         batch_size=args.batch_size,

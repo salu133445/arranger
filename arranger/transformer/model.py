@@ -254,9 +254,9 @@ class InputLayer(tf.keras.layers.Layer):
                 24, 16, name="time_embedding_position"
             )
             self.time_embedding_beat = tf.keras.layers.Embedding(
-                max_beat,
+                max_beat + 1,
                 16,
-                weights=[positional_encoding(max_beat, 16)],
+                weights=[positional_encoding(max_beat + 1, 16)],
                 trainable=False,
                 name="time_embedding_beat",
             )

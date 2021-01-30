@@ -1,4 +1,4 @@
-"""Training script for the LSTM model."""
+"""Training script for the Transformer model."""
 import argparse
 import logging
 import random
@@ -10,7 +10,7 @@ import numpy as np
 import tensorflow as tf
 import tqdm
 
-from arranger.lstm.model import LSTMArranger
+from arranger.transformer.model import TransformerArranger
 from arranger.utils import (
     compute_metrics,
     load_config,
@@ -41,6 +41,7 @@ def parse_arguments():
         "-m",
         "--model_filename",
         type=Path,
+        required=True,
         help="model filename",
     )
     parser.add_argument(
@@ -127,12 +128,6 @@ def parse_arguments():
         help="use autoregressive LSTM",
     )
     parser.add_argument(
-        "-bi",
-        "--bidirectional",
-        action="store_true",
-        help="use bidirectional LSTM",
-    )
-    parser.add_argument(
         "-nl",
         "--n_layers",
         type=int,
@@ -140,11 +135,25 @@ def parse_arguments():
         help="number of layers",
     )
     parser.add_argument(
-        "-nu",
-        "--n_units",
+        "-dm",
+        "--d_model",
         type=int,
         default=128,
-        help="number of hidden units per layer",
+        help="number of hidden units for the attention layer",
+    )
+    parser.add_argument(
+        "-nh",
+        "--n_heads",
+        type=int,
+        default=8,
+        help="number of multi-attention heads",
+    )
+    parser.add_argument(
+        "-df",
+        "--d_feedforward",
+        type=int,
+        default=256,
+        help="number of hidden units for the feedforward layer",
     )
     parser.add_argument(
         "-or",
@@ -162,7 +171,7 @@ def parse_arguments():
 def get_arrays(notes, labels, n_tracks, args):
     """Process data and return as a dictionary of arrays."""
     # Create a dictionary of arrays initialized to zeros
-    seq_len = len(notes)
+    seq_len = min(len(notes), args.max_len)
     inputs = {
         "time": np.zeros((seq_len,), int),
         "pitch": np.zeros((seq_len,), int),
@@ -228,9 +237,8 @@ def process(filename, model, save, args):
 
     # Sort the notes and labels (using notes as keys)
     notes, labels = zip(*sorted(zip(notes, labels), key=itemgetter(0)))
-    seq_len = min(len(notes), args.max_len)
-    notes = np.array(notes[:seq_len])
-    labels = np.array(labels[:seq_len])
+    notes = np.array(notes)
+    labels = np.array(labels)
 
     # Get inputs
     inputs = get_arrays(notes, labels, n_tracks, args)
@@ -312,9 +320,6 @@ def main():
     # Parse command-line arguments
     args = parse_arguments()
     args.output_dir.mkdir(exist_ok=True)
-    if args.oracle:
-        args.output_dir = args.output_dir / "oracle"
-        args.output_dir.mkdir(exist_ok=True)
 
     # Make sure sample directories exist
     (args.output_dir / "samples").mkdir(exist_ok=True)
@@ -371,7 +376,7 @@ def main():
         inputs["previous_label"] = tf.keras.layers.Input(
             (None, n_tracks), dtype=tf.int32, name="label"
         )
-    arranger = LSTMArranger(
+    arranger = TransformerArranger(
         max_len=args.max_len,
         use_duration=args.use_duration,
         use_frequency=args.use_frequency,
@@ -386,19 +391,15 @@ def main():
         bidirectional=args.bidirectional,
         n_tracks=n_tracks,
         n_layers=args.n_layers,
-        n_units=args.n_units,
+        d_model=args.d_model,
+        n_heads=args.n_heads,
+        d_feedforward=args.d_feedforward,
     )
     output = arranger(inputs)
     model = tf.keras.Model(inputs, output)
 
     # Load trained weights
-    if args.model_filename is None:
-        if args.oracle:
-            model.load_weights(args.output_dir.parent / "best_model.hdf5")
-        else:
-            model.load_weights(args.output_dir / "best_model.hdf5")
-    else:
-        model.load_weights(str(args.model_filename))
+    model.load_weights(str(args.model_filename))
 
     # === Testing ===
 

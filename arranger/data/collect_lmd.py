@@ -3,6 +3,7 @@ import argparse
 import logging
 import operator
 import random
+from gzip import compress
 from pathlib import Path
 
 import joblib
@@ -135,7 +136,10 @@ def process_and_save(filename, output_dir, split):
             return
 
         # Save the processed music
-        music.save(output_dir / split / filename.with_suffix(".json").name)
+        music.save(
+            output_dir / split / filename.with_suffix(".json.gz").name,
+            compressed=True,
+        )
 
         return filename
 
@@ -183,7 +187,7 @@ def main():
         logging.info(f"Successfully saved {count} files.")
 
     # Sample test files
-    sample_filenames = list(args.output_dir.glob("test/*.json"))
+    sample_filenames = list(args.output_dir.glob("test/*.json.gz"))
     if len(sample_filenames) > args.samples:
         sample_filenames = random.sample(sample_filenames, args.samples)
     with open(args.output_dir / "samples.txt", "w") as f:
