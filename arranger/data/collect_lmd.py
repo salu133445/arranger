@@ -1,9 +1,8 @@
-"""Preprocess MusicNet dataset."""
+"""Collect pop music dataset."""
 import argparse
 import logging
 import operator
 import random
-from gzip import compress
 from pathlib import Path
 
 import joblib

@@ -166,7 +166,7 @@ def parse_arguments():
         "-p",
         "--patience",
         type=int,
-        default=3,
+        default=5,
         help="patience for early stopping",
     )
     parser.add_argument("-g", "--gpu", type=int, help="GPU device to use")
@@ -178,68 +178,67 @@ def parse_arguments():
 
 def loader(data, labels, n_tracks, args, training):
     """Data loader."""
-    while True:
-        for i in random.sample(range(len(labels)), len(labels)):
-            # Get start time and end time
-            if training:
-                if len(data["time"][i]) > args.seq_len:
-                    start = random.randint(
-                        0, len(data["time"][i]) - args.seq_len
-                    )
-                else:
-                    start = 0
-                end = start + args.seq_len
+    if training:
+        indices = random.sample(range(len(labels)), len(labels))
+    else:
+        indices = range(len(labels))
+    for i in indices:
+        # Get start time and end time
+        if training:
+            if len(data["time"][i]) > args.seq_len:
+                start = random.randint(0, len(data["time"][i]) - args.seq_len)
             else:
                 start = 0
-                end = min(len(data["time"]), args.max_len)
-            # Collect data
-            inputs = {
-                "time": data["time"][i][start:end],
-                "pitch": data["pitch"][i][start:end],
-            }
-            seq_len = len(inputs["time"])
-            if training and args.augmentation:
-                # Randomly transpose the music by -5~+6 semitones
-                inputs["pitch"] = inputs["pitch"] + random.randint(-5, 6)
-                # Handle out-of-range pitch
-                inputs["pitch"][inputs["pitch"] > 127] -= 12  # an octave lower
-                inputs["pitch"][inputs["pitch"] < 0] += 12  # an octave higher
-            if args.use_duration:
-                inputs["duration"] = data["duration"][i][start:end]
-            if args.use_onset_hint:
-                inputs["onset_hint"] = np.zeros((seq_len, n_tracks))
-                for idx, onset in enumerate(data["onset_hint"][i]):
-                    inputs["onset_hint"][:onset, idx] = -1
-                    inputs["onset_hint"][onset + 1 :, idx] = 1
-            if args.use_pitch_hint:
-                inputs["pitch_hint"] = data["pitch_hint"][i]
-            if args.autoregressive:
-                inputs["previous_label"] = np.zeros((seq_len, n_tracks))
-                for idx in range(n_tracks):
-                    nonzero = np.nonzero(labels[:seq_len] == idx + 1)[0]
-                    inputs["previous_label"][
-                        nonzero + 1, np.full_like(nonzero, idx)
-                    ] = 1
-                inputs["previous_label"][:10] = 0
+            end = start + args.seq_len
+        else:
+            start = 0
+            end = min(len(data["time"]), args.max_len)
+        # Collect data
+        inputs = {
+            "time": data["time"][i][start:end],
+            "pitch": data["pitch"][i][start:end],
+        }
+        seq_len = len(inputs["time"])
+        if training and args.augmentation:
+            # Randomly transpose the music by -5~+6 semitones
+            inputs["pitch"] = inputs["pitch"] + random.randint(-5, 6)
+            # Handle out-of-range pitch
+            inputs["pitch"][inputs["pitch"] > 127] -= 12  # an octave lower
+            inputs["pitch"][inputs["pitch"] < 0] += 12  # an octave higher
+        if args.use_duration:
+            inputs["duration"] = data["duration"][i][start:end]
+        if args.use_onset_hint:
+            inputs["onset_hint"] = np.zeros((seq_len, n_tracks))
+            for idx, onset in enumerate(data["onset_hint"][i]):
+                inputs["onset_hint"][:onset, idx] = -1
+                inputs["onset_hint"][onset + 1 :, idx] = 1
+        if args.use_pitch_hint:
+            inputs["pitch_hint"] = data["pitch_hint"][i]
+        if args.autoregressive:
+            inputs["previous_label"] = np.zeros((seq_len, n_tracks))
+            for idx in range(n_tracks):
+                nonzero = np.nonzero(labels[:seq_len] == idx + 1)[0]
+                inputs["previous_label"][
+                    nonzero + 1, np.full_like(nonzero, idx)
+                ] = 1
+            inputs["previous_label"][:10] = 0
 
-            # Pad arrays with zeros at the end
-            if training and seq_len < args.seq_len:
-                for key in inputs:
-                    if key in ("onset_hint", "previous_label"):
-                        inputs[key] = np.pad(
-                            inputs[key],
-                            ((0, args.seq_len - seq_len), (0, 0)),
-                        )
-                    elif key != "pitch_hint":
-                        inputs[key] = np.pad(
-                            inputs[key], (0, args.seq_len - seq_len)
-                        )
-                label = np.pad(
-                    labels[i][start:end], (0, args.seq_len - seq_len)
-                )
-            else:
-                label = labels[i][start:end]
-            yield inputs, label
+        # Pad arrays with zeros at the end
+        if training and seq_len < args.seq_len:
+            for key in inputs:
+                if key in ("onset_hint", "previous_label"):
+                    inputs[key] = np.pad(
+                        inputs[key],
+                        ((0, args.seq_len - seq_len), (0, 0)),
+                    )
+                elif key != "pitch_hint":
+                    inputs[key] = np.pad(
+                        inputs[key], (0, args.seq_len - seq_len)
+                    )
+            label = np.pad(labels[i][start:end], (0, args.seq_len - seq_len))
+        else:
+            label = labels[i][start:end]
+        yield inputs, label
 
 
 def main():
@@ -260,8 +259,9 @@ def main():
     )
     tf.get_logger().setLevel(logging.INFO)
 
-    # Set random seed
+    # Set random seeds
     random.seed(0)
+    tf.random.set_seed(0)
 
     # Log command-line arguments
     logging.info("Running with command-line arguments :")
@@ -313,7 +313,9 @@ def main():
         output_shapes=output_shapes,
         output_types=output_types,
     )
-    train_dataset = train_dataset.batch(args.batch_size).prefetch(3)
+    train_dataset = (
+        train_dataset.shuffle(100).repeat().batch(args.batch_size).prefetch(3)
+    )
 
     # Load validation data
     logging.info("Loading validation data...")

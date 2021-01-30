@@ -4,7 +4,6 @@
 
 ### Bach Chorales
 
-
 ```python
 # Collect Bach chorales from the music21 corpus
 import shutil
@@ -36,7 +35,7 @@ mv nesmdb_midi/ raw/
 
 ```sh
 # Download the dataset
-wget -O data/lmd http://hog.ee.columbia.edu/craffel/lmd/lmd_full.tar.gz
+wget -O data/lmd http://hog.ee.columbia.edu/craffel/lmd/lmd_matched.tar.gz
 
 # Extract the archive
 tar zxf data/lmd/lmd_full.tar.gz

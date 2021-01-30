@@ -1,4 +1,4 @@
-"""Preprocess Bach Chorale dataset."""
+"""Collect Bach chorales dataset."""
 import argparse
 import logging
 import operator
@@ -161,7 +161,6 @@ def main():
         ("train", "valid", "test"), (8, 1, 1), k=len(filenames)
     )  # Select splits for files randomly using an 8:1:1 train-valid-test ratio
     assert filenames, "No input files found."
-
 
     # Start collecting data
     logging.info("Start collecting data...")

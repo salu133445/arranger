@@ -1,4 +1,4 @@
-"""Preprocess NES Music database."""
+"""Collect game music database."""
 import argparse
 import logging
 import operator

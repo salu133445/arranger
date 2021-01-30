@@ -1,6 +1,9 @@
 #!/bin/bash
-# Train the LSTMs
-# Usage: train_lstms.sh DATASET GPU_NUM GROUP
+# Train the LSTM models
+# Usage: train_lstms.sh DATASET GPU_NUM GROUP [GROUP ...]
+#
+# DATASET : {'bach', 'musicnet', 'nes', 'lmd'}
+# GROUP : list of {'default', 'autoregressive', 'bidirectional'}
 set -ex
 
 case "$1" in
@@ -15,10 +18,15 @@ case "$1" in
     ;;
 esac
 
+if [[ -z "$3" ]]; then
+  echo "Please provide the group."
+  exit
+fi
+
 for GROUP in "${@:3}"
 do
   case "$GROUP" in
-    default)
+    de|default)
       python3 arranger/lstm/train.py \
         -i "$HOME/data/arranger/$1/preprocessed/" \
         -o "$HOME/data/arranger/exp/$1/lstm/default/" \

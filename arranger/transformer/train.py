@@ -167,7 +167,7 @@ def parse_arguments():
         "-p",
         "--patience",
         type=int,
-        default=3,
+        default=5,
         help="patience for early stopping",
     )
     parser.add_argument("-g", "--gpu", type=int, help="GPU device to use")
@@ -179,7 +179,11 @@ def parse_arguments():
 
 def loader(data, labels, n_tracks, args, training):
     """Data loader."""
-    for i in random.sample(range(len(labels)), len(labels)):
+    if training:
+        indices = random.sample(range(len(labels)), len(labels))
+    else:
+        indices = range(len(labels))
+    for i in indices:
         # Get start time and end time
         if training:
             if len(data["time"][i]) > args.seq_len:
@@ -258,6 +262,7 @@ def main():
 
     # Set random seed
     random.seed(0)
+    tf.random.set_seed(0)
 
     # Log command-line arguments
     logging.info("Running with command-line arguments :")
@@ -309,7 +314,9 @@ def main():
         output_shapes=output_shapes,
         output_types=output_types,
     )
-    train_dataset = train_dataset.batch(args.batch_size).prefetch(3)
+    train_dataset = (
+        train_dataset.shuffle(100).repeat().batch(args.batch_size).prefetch(3)
+    )
 
     # Load validation data
     logging.info("Loading validation data...")

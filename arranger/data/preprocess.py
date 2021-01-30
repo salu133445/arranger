@@ -1,4 +1,4 @@
-"""Collect training data."""
+"""Preprocess training data."""
 import argparse
 import logging
 import random

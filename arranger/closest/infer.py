@@ -331,7 +331,9 @@ def main():
                 args.output_dir,
                 is_sample,
             )
-            for filename, is_sample in zip(tqdm.tqdm(filenames, disable=args.quiet, ncols=80), is_samples)
+            for filename, is_sample in zip(
+                tqdm.tqdm(filenames, disable=args.quiet, ncols=80), is_samples
+            )
         ]
     else:
         results = joblib.Parallel(args.n_jobs, verbose=5)(

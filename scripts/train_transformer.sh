@@ -1,6 +1,9 @@
 #!/bin/bash
-# Train the Tranformers
-# Usage: train_tranformers.sh DATASET GPU_NUM GROUP
+# Train the Transformer models
+# Usage: train_transformer.sh DATASET GPU_NUM GROUP [GROUP ...]
+#
+# DATASET : {'bach', 'musicnet', 'nes', 'lmd'}
+# GROUP : list of {'default', 'autoregressive'}
 set -ex
 
 case "$1" in
@@ -15,10 +18,15 @@ case "$1" in
     ;;
 esac
 
+if [[ -z "$3" ]]; then
+  echo "Please provide the group."
+  exit
+fi
+
 for GROUP in "${@:3}"
 do
   case "$GROUP" in
-    default)
+    de|default)
       python3 arranger/transformer/train.py \
         -i "$HOME/data/arranger/$1/preprocessed/" \
         -o "$HOME/data/arranger/exp/$1/transformer/default/" \

@@ -1,14 +1,22 @@
 #!/bin/bash
 # Infer with the LSTMs
-# Usage: infer_lstms.sh DATASET GPU_NUM GROUP
+# Usage: infer_lstms.sh DATASET GPU_NUM GROUP [GROUP ...]
+#
+# DATASET : {'bach', 'musicnet', 'nes', 'lmd'}
+# GROUP : list of {'default', 'autoregressive'}
 set -ex
+
+if [[ -z "$3" ]]; then
+  echo "Please provide the group."
+  exit
+fi
 
 if [[ "$1" =~ ^(bach|musicnet|nes|lmd)$ ]]
 then
   for GROUP in "${@:3}"
   do
     case "$GROUP" in
-      default)
+      de|default)
         python3 arranger/lstm/infer.py \
           -i "$HOME/data/arranger/$1/preprocessed/" \
           -o "$HOME/data/arranger/exp/$1/lstm/default/" \

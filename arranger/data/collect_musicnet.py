@@ -1,4 +1,4 @@
-"""Preprocess MusicNet dataset."""
+"""Preprocess string quartets dataset."""
 import argparse
 import logging
 import operator
