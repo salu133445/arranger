@@ -1,4 +1,4 @@
-"""Learning script for the zone-based algorithm."""
+"""Learn the optimal zone setting."""
 import argparse
 import itertools
 import logging

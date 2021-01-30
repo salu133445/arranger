@@ -1,4 +1,4 @@
-"""Inference script for the most-common-label algorithm."""
+"""Inference with the most-common-label algorithm."""
 import argparse
 import logging
 from pathlib import Path

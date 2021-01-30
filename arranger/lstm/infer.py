@@ -1,4 +1,4 @@
-"""Training script for the LSTM model."""
+"""Infer with the LSTM model."""
 import argparse
 import logging
 import random

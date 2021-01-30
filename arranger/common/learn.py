@@ -1,4 +1,4 @@
-"""Learning script for the most-common-label algorithm."""
+"""Learn the most common label."""
 import argparse
 import logging
 from pathlib import Path

@@ -1,4 +1,4 @@
-"""Training script for the Transformer model."""
+"""Train the Transformer model."""
 import argparse
 import logging
 import random

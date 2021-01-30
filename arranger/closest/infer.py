@@ -1,4 +1,4 @@
-"""Inference script for the closest-pitch algorithm."""
+"""Infer with the closest-pitch algorithm."""
 import argparse
 import itertools
 import logging
