@@ -49,25 +49,47 @@ do
       ;;
 
     ar|autoregressive)
+      # python3 arranger/transformer/train.py \
+      #   -i "$HOME/data/arranger/$1/preprocessed/" \
+      #   -o "$HOME/data/arranger/exp/$1/transformer/autoregressive/" \
+      #   -d "$1" -s $STEPS_PER_EPOCH -g "$2" -ar
+
+      # python3 arranger/transformer/train.py \
+      #   -i "$HOME/data/arranger/$1/preprocessed/" \
+      #   -o "$HOME/data/arranger/exp/$1/transformer/autoregressive_embedding/" \
+      #   -d "$1" -s $STEPS_PER_EPOCH -g "$2" -ar -pe -te -fi
+
+      # python3 arranger/transformer/train.py \
+      #   -i "$HOME/data/arranger/$1/preprocessed/" \
+      #   -o "$HOME/data/arranger/exp/$1/transformer/autoregressive_embedding_onsethint/" \
+      #   -d "$1" -s $STEPS_PER_EPOCH -g "$2" -ar -pe -te -fi -oh
+
+      # python3 arranger/transformer/train.py \
+      #   -i "$HOME/data/arranger/$1/preprocessed/" \
+      #   -o "$HOME/data/arranger/exp/$1/transformer/autoregressive_embedding_onsethint_duration/" \
+      #   -d "$1" -s $STEPS_PER_EPOCH -g "$2" -ar -pe -te -fi -oh -di -de
+      ;;
+
+    la|lookahead)
       python3 arranger/transformer/train.py \
         -i "$HOME/data/arranger/$1/preprocessed/" \
-        -o "$HOME/data/arranger/exp/$1/transformer/autoregressive/" \
-        -d "$1" -s $STEPS_PER_EPOCH -g "$2" -ar
+        -o "$HOME/data/arranger/exp/$1/transformer/lookahead/" \
+        -d "$1" -s $STEPS_PER_EPOCH -g "$2" -lm
 
       python3 arranger/transformer/train.py \
         -i "$HOME/data/arranger/$1/preprocessed/" \
-        -o "$HOME/data/arranger/exp/$1/transformer/autoregressive_embedding/" \
-        -d "$1" -s $STEPS_PER_EPOCH -g "$2" -ar -pe -te -fi
+        -o "$HOME/data/arranger/exp/$1/transformer/lookahead_embedding/" \
+        -d "$1" -s $STEPS_PER_EPOCH -g "$2" -lm -pe -te -fi
 
       python3 arranger/transformer/train.py \
         -i "$HOME/data/arranger/$1/preprocessed/" \
-        -o "$HOME/data/arranger/exp/$1/transformer/autoregressive_embedding_onsethint/" \
-        -d "$1" -s $STEPS_PER_EPOCH -g "$2" -ar -pe -te -fi -oh
+        -o "$HOME/data/arranger/exp/$1/transformer/lookahead_embedding_onsethint/" \
+        -d "$1" -s $STEPS_PER_EPOCH -g "$2" -lm -pe -te -fi -oh
 
       python3 arranger/transformer/train.py \
         -i "$HOME/data/arranger/$1/preprocessed/" \
-        -o "$HOME/data/arranger/exp/$1/transformer/autoregressive_embedding_onsethint_duration/" \
-        -d "$1" -s $STEPS_PER_EPOCH -g "$2" -ar -pe -te -fi -oh -di -de
+        -o "$HOME/data/arranger/exp/$1/transformer/lookahead_embedding_onsethint_duration/" \
+        -d "$1" -s $STEPS_PER_EPOCH -g "$2" -lm -pe -te -fi -oh -di -de
       ;;
 
     *)

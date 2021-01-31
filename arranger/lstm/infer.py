@@ -117,7 +117,7 @@ def parse_arguments():
         "-md",
         "--max_duration",
         type=int,
-        default=96,
+        default=192,
         help="maximum duration",
     )
     parser.add_argument(

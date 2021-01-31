@@ -113,10 +113,16 @@ def parse_arguments():
         help="maximum duration",
     )
     parser.add_argument(
+        "-lm",
+        "--use_lookahead_mask",
+        action="store_true",
+        help="use lookahead mask",
+    )
+    parser.add_argument(
         "-ar",
         "--autoregressive",
         action="store_true",
-        help="use autoregressive Transformer (decoder)",
+        help="use autoregressive Transformer",
     )
     parser.add_argument(
         "-nl",
@@ -381,6 +387,7 @@ def main():
         use_duration_embedding=args.use_duration_embedding,
         max_beat=args.max_beat,
         max_duration=args.max_duration,
+        use_lookahead_mask=args.use_lookahead_mask,
         autoregressive=args.autoregressive,
         n_tracks=n_tracks,
         n_layers=args.n_layers,

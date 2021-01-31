@@ -147,7 +147,7 @@ def point_wise_feed_forward_network(d_model, dff):
     )
 
 
-class EncoderLayer(tf.keras.layers.Layer):
+class TransformerLayer(tf.keras.layers.Layer):
     """Copied from https://www.tensorflow.org/tutorials/text/transformer ."""
 
     def __init__(self, d_model, num_heads, dff, rate=0.1):
@@ -180,38 +180,6 @@ class EncoderLayer(tf.keras.layers.Layer):
         return out2
 
 
-class DecoderLayer(tf.keras.layers.Layer):
-    """Adapted from https://www.tensorflow.org/tutorials/text/transformer ."""
-
-    def __init__(self, d_model, num_heads, dff, rate=0.1):
-        super().__init__()
-
-        self.mha1 = MultiHeadAttention(d_model, num_heads)
-
-        self.ffn = point_wise_feed_forward_network(d_model, dff)
-
-        self.layernorm1 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
-        self.layernorm2 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
-
-        self.dropout1 = tf.keras.layers.Dropout(rate)
-        self.dropout2 = tf.keras.layers.Dropout(rate)
-
-    def call(self, x, training, mask):  # noqa
-        attn1, _ = self.mha1(
-            x, x, x, mask
-        )  # (batch_size, target_seq_len, d_model)
-        attn1 = self.dropout1(attn1, training=training)
-        out1 = self.layernorm1(attn1 + x)
-
-        ffn_output = self.ffn(out1)  # (batch_size, target_seq_len, d_model)
-        ffn_output = self.dropout2(ffn_output, training=training)
-        out2 = self.layernorm2(
-            ffn_output + out1
-        )  # (batch_size, target_seq_len, d_model)
-
-        return out2
-
-
 class InputLayer(tf.keras.layers.Layer):
     """Input layer."""
 
@@ -228,7 +196,7 @@ class InputLayer(tf.keras.layers.Layer):
         max_beat: int,
         max_duration: int,
         n_tracks: int,
-        autoregressive: bool,
+        use_lookahead_mask: bool,
     ):
         super().__init__()
         self.max_len = max_len
@@ -242,7 +210,7 @@ class InputLayer(tf.keras.layers.Layer):
         self.max_beat = max_beat
         self.max_duration = max_duration
         self.n_tracks = n_tracks
-        self.autoregressive = autoregressive
+        self.use_lookahead_mask = use_lookahead_mask
 
         # Embedding
         if use_pitch_embedding:
@@ -351,7 +319,7 @@ class InputLayer(tf.keras.layers.Layer):
         mask = tf.cast(tf.equal(inputs["pitch"], 0), tf.float32)
         mask = mask[:, tf.newaxis, tf.newaxis, :]
 
-        if self.autoregressive:
+        if self.use_lookahead_mask:
             look_ahead_mask = 1 - tf.linalg.band_part(
                 tf.ones((seq_len, seq_len)), -1, 0
             )
@@ -389,16 +357,10 @@ class Transformer(tf.keras.layers.Layer):
         self.positional_encoding = self.positional_encoding[tf.newaxis, :]
 
         self.dense_in = tf.keras.layers.Dense(d_model)
-        if autoregressive:
-            self.transformers = [
-                DecoderLayer(d_model, n_heads, d_feedforward, rate=0.2)
-                for _ in range(n_layers)
-            ]
-        else:
-            self.transformers = [
-                EncoderLayer(d_model, n_heads, d_feedforward, rate=0.2)
-                for _ in range(n_layers)
-            ]
+        self.transformers = [
+            TransformerLayer(d_model, n_heads, d_feedforward, rate=0.2)
+            for _ in range(n_layers)
+        ]
         self.dropout = tf.keras.layers.Dropout(0.2)
 
     def call(self, x, training=False, mask=None):  # noqa
@@ -425,6 +387,7 @@ class TransformerArranger(tf.keras.layers.Layer):
         use_duration_embedding: bool,
         max_beat: int,
         max_duration: int,
+        use_lookahead_mask: bool,
         autoregressive: bool,
         n_tracks: int,
         n_layers: int,
@@ -443,6 +406,7 @@ class TransformerArranger(tf.keras.layers.Layer):
         self.use_duration_embedding = use_duration_embedding
         self.max_beat = max_beat
         self.max_duration = max_duration
+        self.use_lookahead_mask = use_lookahead_mask
         self.autoregressive = autoregressive
         self.n_tracks = n_tracks
         self.n_layers = n_layers
@@ -462,7 +426,7 @@ class TransformerArranger(tf.keras.layers.Layer):
             max_beat=max_beat,
             max_duration=max_duration,
             n_tracks=n_tracks,
-            autoregressive=autoregressive,
+            use_lookahead_mask=use_lookahead_mask,
         )
         self.transformer = Transformer(
             autoregressive=autoregressive,
