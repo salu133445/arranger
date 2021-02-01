@@ -41,7 +41,6 @@ def parse_arguments():
         "-m",
         "--model_filename",
         type=Path,
-        required=True,
         help="model filename",
     )
     parser.add_argument(
@@ -118,7 +117,7 @@ def parse_arguments():
         "-md",
         "--max_duration",
         type=int,
-        default=96,
+        default=192,
         help="maximum duration",
     )
     parser.add_argument(
@@ -177,7 +176,7 @@ def parse_arguments():
 def get_arrays(notes, labels, n_tracks, args):
     """Process data and return as a dictionary of arrays."""
     # Create a dictionary of arrays initialized to zeros
-    seq_len = min(len(notes), args.max_len)
+    seq_len = len(notes)
     inputs = {
         "time": np.zeros((seq_len,), int),
         "pitch": np.zeros((seq_len,), int),
@@ -243,8 +242,9 @@ def process(filename, model, save, args):
 
     # Sort the notes and labels (using notes as keys)
     notes, labels = zip(*sorted(zip(notes, labels), key=itemgetter(0)))
-    notes = np.array(notes)
-    labels = np.array(labels)
+    seq_len = min(len(notes), args.max_len)
+    notes = np.array(notes[:seq_len])
+    labels = np.array(labels[:seq_len])
 
     # Get inputs
     inputs = get_arrays(notes, labels, n_tracks, args)
@@ -326,6 +326,9 @@ def main():
     # Parse command-line arguments
     args = parse_arguments()
     args.output_dir.mkdir(exist_ok=True)
+    if args.oracle:
+        args.output_dir = args.output_dir / "oracle"
+        args.output_dir.mkdir(exist_ok=True)
 
     # Make sure sample directories exist
     (args.output_dir / "samples").mkdir(exist_ok=True)
@@ -395,7 +398,6 @@ def main():
         max_duration=args.max_duration,
         use_lookahead_mask=args.use_lookahead_mask,
         autoregressive=args.autoregressive,
-        bidirectional=args.bidirectional,
         n_tracks=n_tracks,
         n_layers=args.n_layers,
         d_model=args.d_model,
@@ -406,7 +408,13 @@ def main():
     model = tf.keras.Model(inputs, output)
 
     # Load trained weights
-    model.load_weights(str(args.model_filename))
+    if args.model_filename is None:
+        if args.oracle:
+            model.load_weights(args.output_dir.parent / "best_model.hdf5")
+        else:
+            model.load_weights(args.output_dir / "best_model.hdf5")
+    else:
+        model.load_weights(str(args.model_filename))
 
     # === Testing ===
 

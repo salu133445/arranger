@@ -1,5 +1,5 @@
 #!/bin/bash
-# Infer with the closest-pitch algorithm
+# Infer with the closest-pitch algorithm.
 # Usage: infer_closest.sh DATASET N_JOBS
 set -ex
 

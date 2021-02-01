@@ -266,7 +266,7 @@ def main():
     )
     tf.get_logger().setLevel(logging.INFO)
 
-    # Set random seed
+    # Set random seeds
     random.seed(0)
     tf.random.set_seed(0)
 

@@ -1,6 +1,7 @@
 """Inference with the most-common-label algorithm."""
 import argparse
 import logging
+from operator import itemgetter
 from pathlib import Path
 
 import joblib
@@ -77,6 +78,9 @@ def process(filename, dataset, oracle, output_dir, save):
         for note in track.notes:
             notes.append((note.time, note.pitch, note.duration, note.velocity))
             labels.append(label)
+
+    # Sort the notes and labels (using notes as keys)
+    notes, labels = zip(*sorted(zip(notes, labels), key=itemgetter(0)))
 
     # Convert lists to arrays for speed reason
     notes = np.array(notes, int)

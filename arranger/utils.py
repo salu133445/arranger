@@ -131,8 +131,6 @@ def load_npz(filename):
 def compute_metrics(results, output_dir):
     """Compute the metrics."""
     # Compute accuracy
-    correct, total = 0, 0
-    accuracies = []
     all_predictions = []
     all_labels = []
     for result in results:
@@ -141,42 +139,51 @@ def compute_metrics(results, output_dir):
         predictions, labels = result
         all_predictions.append(predictions)
         all_labels.append(labels)
-        count_correct = np.count_nonzero(predictions == labels)
-        correct += count_correct
-        total += len(labels)
-        accuracies.append(count_correct / total)
-    accuracy = correct / total
-    logging.info(f"Test accuracy : {round(accuracy * 100)}% ({accuracy})")
 
     # Save predictions and labels
     np.savez(output_dir / "predictions.npz", *all_predictions)
     np.savez(output_dir / "labels.npz", *all_labels)
 
-    # Compute unweighted accuracies
-    accuracies = np.array(accuracies)
-    mean_acc = np.mean(accuracies)
-    std_acc = np.std(accuracies)
-    min_acc = np.min(accuracies)
-    max_acc = np.max(accuracies)
-    logging.info("Unweighted test accuracy :")
-    logging.info(f"- Average : {round(mean_acc* 100)}% ({mean_acc})")
-    logging.info(f"- Min : {round(min_acc* 100)}% ({min_acc})")
-    logging.info(f"- Max : {round(max_acc* 100)}% ({max_acc})")
-    logging.info(f"- Standard deviation : {round(std_acc* 100)}% ({std_acc})")
-    np.savetxt(output_dir / "accuracies.txt", accuracies)
-
-    # Compute F1 score
+    # Load ground truth and predictions
     concat_predictions = np.concatenate(all_predictions)
     concat_labels = np.concatenate(all_labels)
-    f1_score_macro = sklearn.metrics.f1_score(
-        concat_labels, concat_predictions, average="macro"
+
+    # Compute accuracy
+    acc = sklearn.metrics.accuracy_score(concat_labels, concat_predictions)
+    logging.info(f"Accuracy : {100*acc:.2f}% ({acc})")
+
+    # Compute balanced accuracy
+    balanced_acc = sklearn.metrics.balanced_accuracy_score(
+        concat_labels, concat_predictions
     )
-    logging.info(f"F1 score (macro) : {f1_score_macro}")
+    logging.info(
+        f"Balanced accuracy : {100*balanced_acc:.2f}% ({balanced_acc})"
+    )
 
     # Compute confusion matrix
     confusion_matrix = sklearn.metrics.confusion_matrix(
         concat_labels, concat_predictions, normalize="all"
     )
     with np.printoptions(precision=4, suppress=True):
-        logging.info("Confusion_matrix : ")
+        logging.info("Confusion matrix : ")
         logging.info(confusion_matrix)
+    np.save(output_dir / "confusion_matrix.npy", confusion_matrix)
+
+    # Compute soundness and completeness
+    n_labels = np.max(concat_labels) + 1
+    n_sound, n_complete = 0, 0
+    total_sound, total_complete = 0, 0
+    for labels, predictions in zip(all_labels, all_predictions):
+        for label in range(n_labels):
+            # Soundness
+            diff_sound = np.diff(labels[predictions == label])
+            n_sound += np.count_nonzero(diff_sound == 0)
+            total_sound += len(diff_sound)
+            # Completeness
+            diff_complete = np.diff(predictions[labels == label])
+            n_complete += np.count_nonzero(diff_complete == 0)
+            total_complete += len(diff_complete)
+    soundness = n_sound / total_sound
+    completeness = n_complete / total_complete
+    logging.info(f"Soundness : {100*soundness:.2f}% ({soundness})")
+    logging.info(f"Completeness : {100*completeness:.2f}% ({completeness})")

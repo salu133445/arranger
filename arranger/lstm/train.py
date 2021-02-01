@@ -35,11 +35,11 @@ def parse_arguments():
         help="dataset key",
     )
     parser.add_argument(
-        "-nau",
+        "-na",
         "--no_augmentation",
         dest="augmentation",
         action="store_false",
-        help="whether to use data augmentation",
+        help="whether to disable data augmentation",
     )
     parser.set_defaults(augmentation=True)
     parser.add_argument(
@@ -55,6 +55,12 @@ def parse_arguments():
         type=int,
         default=2000,
         help="maximum sequence length for validation",
+    )
+    parser.add_argument(
+        "-bp",
+        "--use_beat_postion",
+        action="store_true",
+        help="use beat and position rather than time",
     )
     parser.add_argument(
         "-di",
@@ -93,6 +99,12 @@ def parse_arguments():
         help="use time embedding",
     )
     parser.add_argument(
+        "-be",
+        "--use_beat_embedding",
+        action="store_true",
+        help="use beat embedding",
+    )
+    parser.add_argument(
         "-de",
         "--use_duration_embedding",
         action="store_true",
@@ -104,6 +116,13 @@ def parse_arguments():
         type=int,
         default=24,
         help="resolution (time step per quarter note)",
+    )
+    parser.add_argument(
+        "-mt",
+        "--max_time",
+        type=int,
+        default=4096,
+        help="maximum time",
     )
     parser.add_argument(
         "-mb",
@@ -371,13 +390,16 @@ def main():
         )
     arranger = LSTMArranger(
         max_len=args.max_len,
+        use_beat_postion=args.use_beat_postion,
         use_duration=args.use_duration,
         use_frequency=args.use_frequency,
         use_onset_hint=args.use_onset_hint,
         use_pitch_hint=args.use_pitch_hint,
         use_pitch_embedding=args.use_pitch_embedding,
         use_time_embedding=args.use_time_embedding,
+        use_beat_embedding=args.use_beat_embedding,
         use_duration_embedding=args.use_duration_embedding,
+        max_time=args.max_time,
         max_beat=args.max_beat,
         max_duration=args.max_duration,
         autoregressive=args.autoregressive,

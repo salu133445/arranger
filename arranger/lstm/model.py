@@ -34,26 +34,41 @@ class InputLayer(tf.keras.layers.Layer):
     def __init__(
         self,
         max_len: int,
+        use_beat_postion: bool,
         use_duration: bool,
         use_frequency: bool,
         use_onset_hint: bool,
         use_pitch_hint: bool,
         use_pitch_embedding: bool,
         use_time_embedding: bool,
+        use_beat_embedding: bool,
         use_duration_embedding: bool,
+        max_time: int,
         max_beat: int,
         max_duration: int,
         n_tracks: int,
     ):
+        assert (
+            not use_time_embedding or not use_beat_embedding
+        ), "use_time_embedding and use_beat_embedding must not be both True"
+        assert (
+            not use_beat_postion or not use_time_embedding
+        ), "use_time_embedding must be False when use_beat_postion is True"
+        assert (
+            use_beat_postion or not use_beat_embedding
+        ), "use_beat_embedding must be False when use_beat_postion is False"
         super().__init__()
         self.max_len = max_len
+        self.use_beat_postion = use_beat_postion
         self.use_duration = use_duration
         self.use_frequency = use_frequency
         self.use_onset_hint = use_onset_hint
         self.use_pitch_hint = use_pitch_hint
         self.use_pitch_embedding = use_pitch_embedding
         self.use_time_embedding = use_time_embedding
+        self.use_beat_embedding = use_beat_embedding
         self.use_duration_embedding = use_duration_embedding
+        self.max_time = max_time
         self.max_beat = max_beat
         self.max_duration = max_duration
         self.n_tracks = n_tracks
@@ -64,6 +79,14 @@ class InputLayer(tf.keras.layers.Layer):
                 129, 16, name="pitch_embedding"
             )
         if use_time_embedding:
+            self.time_embedding = tf.keras.layers.Embedding(
+                max_time + 1,
+                16,
+                weights=[positional_encoding(max_time + 1, 16)],
+                trainable=False,
+                name="time_embedding",
+            )
+        if use_beat_embedding:
             self.time_embedding_position = tf.keras.layers.Embedding(
                 24, 16, name="time_embedding_position"
             )
@@ -119,7 +142,18 @@ class InputLayer(tf.keras.layers.Layer):
                 tf.expand_dims(tf.cast(inputs["pitch"], tf.float32), -1)
             )
 
-        if self.use_time_embedding:
+        if not self.use_beat_postion:
+            if self.use_time_embedding:
+                tensors.append(
+                    self.time_embedding(
+                        tf.clip_by_value(inputs["time"], 0, self.max_time)
+                    )
+                )
+            else:
+                tensors.append(
+                    tf.expand_dims(tf.cast(inputs["time"], tf.float32), -1)
+                )
+        elif self.use_beat_embedding:
             tensors.append(self.time_embedding_position(inputs["time"] % 24))
             tensors.append(
                 self.time_embedding_beat(
@@ -130,6 +164,7 @@ class InputLayer(tf.keras.layers.Layer):
             tensors.append(
                 tf.expand_dims(tf.cast(inputs["time"], tf.float32), -1)
             )
+
         if self.use_duration:
             if self.use_duration_embedding:
                 tensors.append(
@@ -214,13 +249,16 @@ class LSTMArranger(tf.keras.layers.Layer):
     def __init__(
         self,
         max_len: int,
+        use_beat_postion: bool,
         use_duration: bool,
         use_frequency: bool,
         use_onset_hint: bool,
         use_pitch_hint: bool,
         use_pitch_embedding: bool,
         use_time_embedding: bool,
+        use_beat_embedding: bool,
         use_duration_embedding: bool,
+        max_time: int,
         max_beat: int,
         max_duration: int,
         autoregressive: bool,
@@ -231,6 +269,7 @@ class LSTMArranger(tf.keras.layers.Layer):
     ):
         super().__init__()
         self.max_len = max_len
+        self.use_beat_postion = use_beat_postion
         self.use_duration = use_duration
         self.use_frequency = use_frequency
         self.use_onset_hint = use_onset_hint
@@ -238,6 +277,8 @@ class LSTMArranger(tf.keras.layers.Layer):
         self.use_pitch_embedding = use_pitch_embedding
         self.use_time_embedding = use_time_embedding
         self.use_duration_embedding = use_duration_embedding
+        self.use_beat_embedding = use_beat_embedding
+        self.max_time = max_time
         self.max_beat = max_beat
         self.max_duration = max_duration
         self.autoregressive = autoregressive
@@ -251,13 +292,16 @@ class LSTMArranger(tf.keras.layers.Layer):
 
         self.input_layer = InputLayer(
             max_len=max_len,
+            use_beat_postion=use_beat_postion,
             use_duration=use_duration,
             use_frequency=use_frequency,
             use_onset_hint=use_onset_hint,
             use_pitch_hint=use_pitch_hint,
             use_pitch_embedding=use_pitch_embedding,
             use_time_embedding=use_time_embedding,
+            use_beat_embedding=use_beat_embedding,
             use_duration_embedding=use_duration_embedding,
+            max_time=max_time,
             max_beat=max_beat,
             max_duration=max_duration,
             n_tracks=n_tracks,
