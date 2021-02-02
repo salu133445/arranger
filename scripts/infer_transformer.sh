@@ -17,25 +17,25 @@ then
   do
     case "$GROUP" in
       de|default)
-        python3 arranger/transformer/infer.py \
-          -i "$HOME/data/arranger/$1/json/" \
-          -o "$HOME/data/arranger/exp/$1/transformer/default/" \
-          -d "$1" -g "$2"
+        # python3 arranger/transformer/infer.py \
+        #   -i "$HOME/data/arranger/$1/json/" \
+        #   -o "$HOME/data/arranger/exp/$1/transformer/default/" \
+        #   -d "$1" -g "$2"
 
-        python3 arranger/transformer/infer.py \
-          -i "$HOME/data/arranger/$1/json/" \
-          -o "$HOME/data/arranger/exp/$1/transformer/default_embedding/" \
-          -d "$1" -g "$2" -pe -be -fi
+        # python3 arranger/transformer/infer.py \
+        #   -i "$HOME/data/arranger/$1/json/" \
+        #   -o "$HOME/data/arranger/exp/$1/transformer/default_embedding/" \
+        #   -d "$1" -g "$2" -pe -te -fi
 
         python3 arranger/transformer/infer.py \
           -i "$HOME/data/arranger/$1/json/" \
           -o "$HOME/data/arranger/exp/$1/transformer/default_embedding_onsethint/" \
-          -d "$1" -g "$2" -pe -be -fi -oh
+          -d "$1" -g "$2" -pe -te -fi -oh
 
         python3 arranger/transformer/infer.py \
           -i "$HOME/data/arranger/$1/json/" \
           -o "$HOME/data/arranger/exp/$1/transformer/default_embedding_onsethint_duration/" \
-          -d "$1" -g "$2" -pe -be -fi -oh -di -de
+          -d "$1" -g "$2" -pe -te -fi -oh -di -de
         ;;
 
       ar|autoregressive)
@@ -81,25 +81,25 @@ then
         ;;
 
       la|lookahead)
-        python3 arranger/transformer/infer.py \
-          -i "$HOME/data/arranger/$1/json/" \
-          -o "$HOME/data/arranger/exp/$1/transformer/lookahead/" \
-          -d "$1" -g "$2" -lm
+        # python3 arranger/transformer/infer.py \
+        #   -i "$HOME/data/arranger/$1/json/" \
+        #   -o "$HOME/data/arranger/exp/$1/transformer/lookahead/" \
+        #   -d "$1" -g "$2" -lm
 
-        python3 arranger/transformer/infer.py \
-          -i "$HOME/data/arranger/$1/json/" \
-          -o "$HOME/data/arranger/exp/$1/transformer/lookahead_embedding/" \
-          -d "$1" -g "$2" -lm -pe -be -fi
+        # python3 arranger/transformer/infer.py \
+        #   -i "$HOME/data/arranger/$1/json/" \
+        #   -o "$HOME/data/arranger/exp/$1/transformer/lookahead_embedding/" \
+        #   -d "$1" -g "$2" -lm -pe -te -fi
 
         python3 arranger/transformer/infer.py \
           -i "$HOME/data/arranger/$1/json/" \
           -o "$HOME/data/arranger/exp/$1/transformer/lookahead_embedding_onsethint/" \
-          -d "$1" -g "$2" -lm -pe -be -fi -oh
+          -d "$1" -g "$2" -lm -pe -te -fi -oh
 
         python3 arranger/transformer/infer.py \
           -i "$HOME/data/arranger/$1/json/" \
           -o "$HOME/data/arranger/exp/$1/transformer/lookahead_embedding_onsethint_duration/" \
-          -d "$1" -g "$2" -lm -pe -be -fi -oh -di -de
+          -d "$1" -g "$2" -lm -pe -te -fi -oh -di -de
         ;;
 
       *)
