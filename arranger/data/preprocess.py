@@ -99,6 +99,8 @@ def process(filename, dataset):
 
     # Sort the notes and labels (using notes as keys)
     notes, labels = zip(*sorted(zip(notes, labels), key=itemgetter(0)))
+    notes = np.array(notes)
+    labels = np.array(labels)
 
     # Set sequence length to number of notes by default
     arrays = get_arrays(notes, labels, n_tracks, len(notes))

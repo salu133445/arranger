@@ -181,6 +181,9 @@ def parse_arguments():
 def get_arrays(notes, labels, n_tracks, args):
     """Process data and return as a dictionary of arrays."""
     # Create a dictionary of arrays initialized to zeros
+    assert len(notes) == len(
+        labels
+    ), "Notes and labels must have the same length."
     seq_len = len(notes)
     inputs = {
         "time": np.zeros((seq_len,), int),
@@ -190,7 +193,7 @@ def get_arrays(notes, labels, n_tracks, args):
         inputs["duration"] = np.zeros((seq_len,), int)
 
     # Fill in data
-    for i, note in enumerate(notes[:seq_len]):
+    for i, note in enumerate(notes):
         inputs["time"][i] = note[0]
         inputs["pitch"][i] = note[1] + 1  # 0 is reserved for 'no pitch'
         if args.use_duration:
@@ -202,7 +205,7 @@ def get_arrays(notes, labels, n_tracks, args):
         inputs["pitch_hint"] = np.zeros((n_tracks,), int)
     if args.use_onset_hint or args.use_pitch_hint:
         for i in range(n_tracks):
-            nonzero = np.nonzero(labels[:seq_len] == i)[0]
+            nonzero = np.nonzero(labels + 1 == i)[0]
             if nonzero.size:
                 if args.use_onset_hint:
                     inputs["onset_hint"][: nonzero[0], i] = -1
@@ -214,7 +217,7 @@ def get_arrays(notes, labels, n_tracks, args):
     if args.autoregressive and args.oracle:
         inputs["previous_label"] = np.zeros((seq_len, n_tracks))
         for i in range(n_tracks):
-            nonzero = np.nonzero(labels[:seq_len] == i + 1)[0]
+            nonzero = np.nonzero(labels + 1 == i)[0]
             inputs["previous_label"][nonzero - 1, np.full_like(nonzero, i)] = 1
 
     for key in inputs:

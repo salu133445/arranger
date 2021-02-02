@@ -41,6 +41,14 @@ def parse_arguments():
         action="store_false",
         help="whether to disable data augmentation",
     )
+    parser.add_argument(
+        "-pr",
+        "--augmentation_pitch_range",
+        nargs=2,
+        type=int,
+        default=[5, 6],
+        help="pitch augmentation range",
+    )
     parser.set_defaults(augmentation=True)
     parser.add_argument(
         "-sl",
@@ -218,12 +226,6 @@ def loader(data, labels, n_tracks, args, training):
             "pitch": data["pitch"][i][start:end],
         }
         seq_len = len(inputs["time"])
-        if training and args.augmentation:
-            # Randomly transpose the music by -5~+6 semitones
-            inputs["pitch"] = inputs["pitch"] + random.randint(-5, 6)
-            # Handle out-of-range pitch
-            inputs["pitch"][inputs["pitch"] > 127] -= 12  # an octave lower
-            inputs["pitch"][inputs["pitch"] < 0] += 12  # an octave higher
         if args.use_duration:
             inputs["duration"] = data["duration"][i][start:end]
         if args.use_onset_hint:
@@ -241,6 +243,19 @@ def loader(data, labels, n_tracks, args, training):
                     nonzero + 1, np.full_like(nonzero, idx)
                 ] = 1
             inputs["previous_label"][:10] = 0
+        if training and args.augmentation:
+            # Randomly transpose the music
+            semitone = random.randint(
+                -args.augmentation_pitch_range[0],
+                args.augmentation_pitch_range[1],
+            )
+            inputs["pitch"] = np.clip(inputs["pitch"] + semitone, 0, 127)
+            if args.use_pitch_hint:
+                for idx in range(n_tracks):
+                    if inputs["pitch_hint"][idx] > 0:
+                        inputs["pitch_hint"][idx] = np.clip(
+                            inputs["pitch_hint"][idx] + semitone, 0, 127
+                        )
 
         # Pad arrays with zeros at the end
         if training and seq_len < args.seq_len:

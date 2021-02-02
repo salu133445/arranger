@@ -162,7 +162,18 @@ class InputLayer(tf.keras.layers.Layer):
             )
         else:
             tensors.append(
-                tf.expand_dims(tf.cast(inputs["time"], tf.float32), -1)
+                tf.expand_dims(tf.cast(inputs["time"] % 24, tf.float32), -1)
+            )
+            tensors.append(
+                tf.expand_dims(
+                    tf.cast(
+                        tf.clip_by_value(
+                            inputs["time"] // 24, 0, self.max_beat
+                        ),
+                        tf.float32,
+                    ),
+                    -1,
+                )
             )
 
         if self.use_duration:
