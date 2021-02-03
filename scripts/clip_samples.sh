@@ -1,0 +1,28 @@
+#!/bin/bash
+set -ex
+
+ffmpeg -y -t 10 -i bwv434_audio/bach/bwv434_truth.mp3 -acodec copy bwv434_audio/bach/bwv434_truth_trimmed.mp3
+
+ffmpeg -y -ss 2:05.50 -t 20 -i beethoven95_audio/musicnet/2494_qt11_1_truth.mp3 -acodec copy beethoven95_audio/musicnet/2494_qt11_1_truth_trimmed.mp3
+ffmpeg -y -ss 2:05.50 -t 20 -i beethoven95_audio/musicnet/2494_qt11_1_lstm_default_embedding_onsethint.mp3 -acodec copy beethoven95_audio/musicnet/2494_qt11_1_lstm_default_embedding_onsethint_trimmed.mp3
+ffmpeg -y -ss 2:05.50 -t 20 -i beethoven95_audio/musicnet/2494_qt11_1_lstm_bidirectional_embedding_onsethint_duration.mp3 -acodec copy beethoven95_audio/musicnet/2494_qt11_1_lstm_bidirectional_embedding_onsethint_duration_trimmed.mp3
+
+ffmpeg -y -t 4 -i seicross_audio/nes/290_Seicross_01_02BGM1_truth.mp3 -acodec copy seicross_audio/nes/290_Seicross_01_02BGM1_truth_trimmed.mp3
+ffmpeg -y -t 4 -i seicross_audio/nes/290_Seicross_01_02BGM1_lstm_default_embedding_onsethint.mp3 -acodec copy seicross_audio/nes/290_Seicross_01_02BGM1_lstm_default_embedding_onsethint_trimmed.mp3
+ffmpeg -y -t 4 -i seicross_audio/nes/290_Seicross_01_02BGM1_lstm_bidirectional_embedding_onsethint_duration.mp3 -acodec copy seicross_audio/nes/290_Seicross_01_02BGM1_lstm_bidirectional_embedding_onsethint_duration_trimmed.mp3
+
+ffmpeg -y -t 7 -i miracle_ropit_audio/nes/241_MiracleRopit_sAdventurein2100_05_06ThemeofUniverse_truth.mp3 -acodec copy miracle_ropit_audio/nes/241_MiracleRopit_sAdventurein2100_05_06ThemeofUniverse_truth_trimmed.mp3
+ffmpeg -y -t 7 -i miracle_ropit_audio/nes/241_MiracleRopit_sAdventurein2100_05_06ThemeofUniverse_lstm_default_embedding_onsethint.mp3 -acodec copy miracle_ropit_audio/nes/241_MiracleRopit_sAdventurein2100_05_06ThemeofUniverse_lstm_default_embedding_onsethint_trimmed.mp3
+ffmpeg -y -t 7 -i miracle_ropit_audio/nes/241_MiracleRopit_sAdventurein2100_05_06ThemeofUniverse_lstm_bidirectional_embedding_onsethint_duration.mp3 -acodec copy miracle_ropit_audio/nes/241_MiracleRopit_sAdventurein2100_05_06ThemeofUniverse_lstm_bidirectional_embedding_onsethint_duration_trimmed.mp3
+
+ffmpeg -y -ss 0:17.50 -t 10 -i blame_it_on_the_boogie_audio/lmd_drums/5a65323fe3ba1c143a276ca06a0a1a3d.json_truth_drums.mp3 -acodec copy blame_it_on_the_boogie_audio/lmd_drums/5a65323fe3ba1c143a276ca06a0a1a3d.json_truth_drums_trimmed.mp3
+ffmpeg -y -ss 0:17.50 -t 10 -i blame_it_on_the_boogie_audio/lmd_drums/5a65323fe3ba1c143a276ca06a0a1a3d.json_lstm_default_embedding_onsethint_drums.mp3 -acodec copy blame_it_on_the_boogie_audio/lmd_drums/5a65323fe3ba1c143a276ca06a0a1a3d.json_lstm_default_embedding_onsethint_drums_trimmed.mp3
+ffmpeg -y -ss 0:17.50 -t 10 -i blame_it_on_the_boogie_audio/lmd_drums/5a65323fe3ba1c143a276ca06a0a1a3d.json_lstm_bidirectional_embedding_onsethint_duration_drums.mp3 -acodec copy blame_it_on_the_boogie_audio/lmd_drums/5a65323fe3ba1c143a276ca06a0a1a3d.json_lstm_bidirectional_embedding_onsethint_duration_drums_trimmed.mp3
+
+ffmpeg -y -ss 1:19.25 -t 13 -i cette_annee_la_audio/lmd_drums/aab14a403b02ea384b7a5019042a4372.json_truth_drums.mp3 -acodec copy cette_annee_la_audio/lmd_drums/aab14a403b02ea384b7a5019042a4372.json_truth_drums_trimmed.mp3
+ffmpeg -y -ss 1:19.25 -t 13 -i cette_annee_la_audio/lmd_drums/aab14a403b02ea384b7a5019042a4372.json_lstm_default_embedding_onsethint_drums.mp3 -acodec copy cette_annee_la_audio/lmd_drums/aab14a403b02ea384b7a5019042a4372.json_lstm_default_embedding_onsethint_drums_trimmed.mp3
+ffmpeg -y -ss 1:19.25 -t 13 -i cette_annee_la_audio/lmd_drums/aab14a403b02ea384b7a5019042a4372.json_lstm_bidirectional_embedding_onsethint_duration_drums.mp3 -acodec copy cette_annee_la_audio/lmd_drums/aab14a403b02ea384b7a5019042a4372.json_lstm_bidirectional_embedding_onsethint_duration_drums_trimmed.mp3
+
+ffmpeg -y -ss 1:05 -t 15 -i quando_quando_quando_audio/lmd_drums/e12eae3af78be50180ab073aaf91e045.json_truth_drums.mp3 -acodec copy quando_quando_quando_audio/lmd_drums/e12eae3af78be50180ab073aaf91e045.json_truth_drums_trimmed.mp3
+ffmpeg -y -ss 1:05 -t 15 -i quando_quando_quando_audio/lmd_drums/e12eae3af78be50180ab073aaf91e045.json_lstm_default_embedding_onsethint_drums.mp3 -acodec copy quando_quando_quando_audio/lmd_drums/e12eae3af78be50180ab073aaf91e045.json_lstm_default_embedding_onsethint_drums_trimmed.mp3
+ffmpeg -y -ss 1:05 -t 15 -i quando_quando_quando_audio/lmd_drums/e12eae3af78be50180ab073aaf91e045.json_lstm_bidirectional_embedding_onsethint_duration_drums.mp3 -acodec copy quando_quando_quando_audio/lmd_drums/e12eae3af78be50180ab073aaf91e045.json_lstm_bidirectional_embedding_onsethint_duration_drums_trimmed.mp3

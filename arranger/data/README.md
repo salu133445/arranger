@@ -18,6 +18,11 @@ for path in music21.corpus.getComposer("bach"):
 
 TBA
 
+```sh
+# Download the metadata
+wget -O data/musicnet https://homes.cs.washington.edu/~thickstn/media/musicnet_metadata.csv
+```
+
 ### NES Music Database
 
 ```sh
@@ -38,10 +43,13 @@ mv nesmdb_midi/ raw/
 wget -O data/lmd http://hog.ee.columbia.edu/craffel/lmd/lmd_matched.tar.gz
 
 # Extract the archive
-tar zxf data/lmd/lmd_full.tar.gz
+tar zxf data/lmd/lmd_matched.tar.gz
 
 # Rename the folder for consistency
-mv lmd_full/ raw/
+mv lmd_matched/ raw/
+
+# Download the filenames
+wget -O data/lmd http://hog.ee.columbia.edu/craffel/lmd/md5_to_paths.json
 ```
 
 ## Data Preprocessing

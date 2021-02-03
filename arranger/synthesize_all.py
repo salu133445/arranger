@@ -89,90 +89,92 @@ def main():
     for dataset in ("bach", "musicnet", "nes", "lmd"):
         if dataset != "lmd":
             continue
-        # # Ground truth
-        # sample_dir = args.input_dir / f"{dataset}/common/default/samples"
-        # if not args.quiet:
-        #     print(sample_dir)
-        # (sample_dir / "mp3").mkdir(exist_ok=True)
+        # Ground truth
+        sample_dir = args.input_dir / f"{dataset}/common/default/samples"
+        if not args.quiet:
+            print(sample_dir)
+        (sample_dir / "mp3").mkdir(exist_ok=True)
 
-        # # Save audio files
-        # filenames = list((sample_dir / "json").glob("*_truth.json"))
+        # Save audio files
+        filenames = list((sample_dir / "json").glob("*_truth.json"))
+        if dataset == "lmd":
+            filenames.extend((sample_dir / "json").glob("*_truth_drums.json"))
 
-        # if args.n_jobs == 1:
-        #     for filename in tqdm.tqdm(filenames, ncols=80):
-        #         write_audio(filename)
-        # else:
-        #     joblib.Parallel(
-        #         args.n_jobs,
-        #         prefer="threads",
-        #         verbose=0 if args.quiet else 5,
-        #     )(joblib.delayed(write_audio)(filename) for filename in filenames)
+        if args.n_jobs == 1:
+            for filename in tqdm.tqdm(filenames, ncols=80):
+                write_audio(filename)
+        else:
+            joblib.Parallel(
+                args.n_jobs,
+                prefer="threads",
+                verbose=0 if args.quiet else 5,
+            )(joblib.delayed(write_audio)(filename) for filename in filenames)
 
-        # Baselines
-        models = ("common", "zone", "closest", "closest")
-        settings = ("default", "permutation", "default", "states")
-        for model, setting in zip(models, settings):
-            sample_dir = (
-                args.input_dir / f"{dataset}/{model}/{setting}/samples"
-            )
-            if not args.quiet:
-                print(sample_dir)
-            (sample_dir / "mp3").mkdir(exist_ok=True)
+        # # Baselines
+        # models = ("common", "zone", "closest", "closest")
+        # settings = ("default", "permutation", "default", "states")
+        # for model, setting in zip(models, settings):
+        #     sample_dir = (
+        #         args.input_dir / f"{dataset}/{model}/{setting}/samples"
+        #     )
+        #     if not args.quiet:
+        #         print(sample_dir)
+        #     (sample_dir / "mp3").mkdir(exist_ok=True)
 
-            # Save audio files
-            filenames = list((sample_dir / "json").glob("*_pred.json"))
-            if dataset == "lmd":
-                filenames.extend(
-                    (sample_dir / "json").glob("*_pred_drums.json")
-                )
-            if args.n_jobs == 1:
-                for filename in tqdm.tqdm(filenames, ncols=80):
-                    write_audio(filename)
-            else:
-                joblib.Parallel(
-                    args.n_jobs,
-                    prefer="threads",
-                    verbose=0 if args.quiet else 5,
-                )(
-                    joblib.delayed(write_audio)(filename)
-                    for filename in filenames
-                )
+        #     # Save audio files
+        #     filenames = list((sample_dir / "json").glob("*_pred.json"))
+        #     if dataset == "lmd":
+        #         filenames.extend(
+        #             (sample_dir / "json").glob("*_pred_drums.json")
+        #         )
+        #     if args.n_jobs == 1:
+        #         for filename in tqdm.tqdm(filenames, ncols=80):
+        #             write_audio(filename)
+        #     else:
+        #         joblib.Parallel(
+        #             args.n_jobs,
+        #             prefer="threads",
+        #             verbose=0 if args.quiet else 5,
+        #         )(
+        #             joblib.delayed(write_audio)(filename)
+        #             for filename in filenames
+        #         )
 
-        # Models
-        for model in ("lstm", "transformer"):
-            keys = ["embedding", "onsethint", "duration"]
-            if model == "lstm":
-                keys1 = ("default", "bidirectional")
-            else:
-                keys1 = ("default", "lookahead")
-            for key1 in keys1:
-                for i in range(len(keys) + 1):
-                    setting = "_".join([key1] + keys[:i])
-                    sample_dir = (
-                        args.input_dir / f"{dataset}/{model}/{setting}/samples"
-                    )
-                    if not args.quiet:
-                        print(sample_dir)
-                    (sample_dir / "mp3").mkdir(exist_ok=True)
+        # # Models
+        # for model in ("lstm", "transformer"):
+        #     keys = ["embedding", "onsethint", "duration"]
+        #     if model == "lstm":
+        #         keys1 = ("default", "bidirectional")
+        #     else:
+        #         keys1 = ("default", "lookahead")
+        #     for key1 in keys1:
+        #         for i in range(len(keys) + 1):
+        #             setting = "_".join([key1] + keys[:i])
+        #             sample_dir = (
+        #                 args.input_dir / f"{dataset}/{model}/{setting}/samples"
+        #             )
+        #             if not args.quiet:
+        #                 print(sample_dir)
+        #             (sample_dir / "mp3").mkdir(exist_ok=True)
 
-                    # Save audio files
-                    filenames = list((sample_dir / "json").glob("*_pred.json"))
-                    if dataset == "lmd":
-                        filenames.extend(
-                            (sample_dir / "json").glob("*_pred_drums.json")
-                        )
-                    if args.n_jobs == 1:
-                        for filename in tqdm.tqdm(filenames, ncols=80):
-                            write_audio(filename)
-                    else:
-                        joblib.Parallel(
-                            args.n_jobs,
-                            prefer="threads",
-                            verbose=0 if args.quiet else 5,
-                        )(
-                            joblib.delayed(write_audio)(filename)
-                            for filename in filenames
-                        )
+        #             # Save audio files
+        #             filenames = list((sample_dir / "json").glob("*_pred.json"))
+        #             if dataset == "lmd":
+        #                 filenames.extend(
+        #                     (sample_dir / "json").glob("*_pred_drums.json")
+        #                 )
+        #             if args.n_jobs == 1:
+        #                 for filename in tqdm.tqdm(filenames, ncols=80):
+        #                     write_audio(filename)
+        #             else:
+        #                 joblib.Parallel(
+        #                     args.n_jobs,
+        #                     prefer="threads",
+        #                     verbose=0 if args.quiet else 5,
+        #                 )(
+        #                     joblib.delayed(write_audio)(filename)
+        #                     for filename in filenames
+        #                 )
 
 
 if __name__ == "__main__":
