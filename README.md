@@ -1,7 +1,7 @@
 Arranger
 ========
 
-Directory Structure
+Directory structure
 -------------------
 
 ```text
@@ -14,8 +14,7 @@ Directory Structure
    ├─ zone          Zone-based algorithm
    ├─ closest       Closest-pitch algorithm
    ├─ lstm          LSTM model
-   ├─ transformer   Transformer model
-   └─ cnn           CNN model
+   └─ transformer   Transformer model
 ```
 
 Prerequisites
@@ -31,27 +30,27 @@ Please follow the instruction in `arranger/data/README.md`.
 Models
 ------
 
-- `arranger/lstm` : LSTM model
-  - `train.py`: Train the LSTM model.
-  - `infer.py`: Infer with the LSTM model.
-- `arranger/transformer` : Transformer model
-  - `train.py`: Train the Transformer model.
-  - `infer.py`: Infer with the Transformer model.
-- `arranger/cnn` : CNN model
-  - `train.py`: Train the CNN model.
-  - `infer.py`: Infer with the CNN model.
+- LSTM model
+  - `arranger/lstm/train.py`: Train the LSTM model.
+  - `arranger/lstm/infer.py`: Infer with the LSTM model.
+- Transformer model
+  - `arranger/transformer/train.py`: Train the Transformer model.
+  - `arranger/transformer/infer.py`: Infer with the Transformer model.
 
-Baseline Algorithms
+Baseline algorithms
 -------------------
 
-- `arranger/common` : Most-common algorithm
-  - `learn.py`: Learn the most common label.
-  - `infer.py`: Infer with the most-common algorithm.
-- `arranger/zone` : Zone-based algorithm
-  - `learn.py`: Learn the optimal zone setting.
-  - `infer.py`: Infer with the zone-based algorithm.
-- `arranger/closest` : Closest-pitch algorithm
-  - `infer.py`: Infer with the closest-pitch algorithm.
+- Most-common algorithm
+  - `arranger/common/learn.py`: Learn the most common label
+  - `arranger/common/infer.py`: Infer with the most-common algorithm
+- Zone-based algorithm
+  - `arranger/zone/learn.py`: Learn the optimal zone setting
+  - `arranger/zone/infer.py`: Infer with the zone-based algorithm
+- Closest-pitch algorithm
+  - `arranger/closest/infer.py`: Infer with the closest-pitch algorithm
+- MLP model
+  - `arranger/mlp/train.py`: Train the MLP model
+  - `arranger/mlp/infer.py`: Infer with the MLP model
 
 Configuration
 -------------
