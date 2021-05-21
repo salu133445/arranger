@@ -144,3 +144,7 @@ static
 
 # vscode
 .vscode/
+
+# GitHub Pages
+_site/
+Gemfile.lock

@@ -1,0 +1,26 @@
+.blue {
+  color: #1f77b4;
+}
+
+.orange {
+  color: #ff7f0e;
+}
+
+.green {
+  color: #2ca02c;
+}
+
+.red {
+  color: #d62728;
+}
+
+.purple {
+  color: #9467bd;
+}
+
+.score {
+  max-width: none;
+  min-height: 40px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
