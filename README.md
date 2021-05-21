@@ -31,11 +31,11 @@ Models
 ------
 
 - LSTM model
-  - `arranger/lstm/train.py`: Train the LSTM model.
-  - `arranger/lstm/infer.py`: Infer with the LSTM model.
+  - `arranger/lstm/train.py`: Train the LSTM model
+  - `arranger/lstm/infer.py`: Infer with the LSTM model
 - Transformer model
-  - `arranger/transformer/train.py`: Train the Transformer model.
-  - `arranger/transformer/infer.py`: Infer with the Transformer model.
+  - `arranger/transformer/train.py`: Train the Transformer model
+  - `arranger/transformer/infer.py`: Infer with the Transformer model
 
 Baseline algorithms
 -------------------
