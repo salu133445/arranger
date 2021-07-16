@@ -2,61 +2,80 @@
 <html lang="{{ site.lang | default: 'en-US' }}">
   <head>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     {% seo %}
-
     <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
-    <meta name="viewport" content="width=device-width">
+    <!--[if lt IE 9]>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <![endif]-->
   </head>
   <body>
     <div class="wrapper">
       <header>
-        <div class="title"><h1><a class="nohover" href="{{ site.github.url }}">Arranger</a></h1></div>
+        <div class="title">
+          <h1><a class="nohover" href="{{ site.github.url }}">Arranger</a></h1>
+        </div>
 
-        <div class="author-info">
-          <p class="author-names">
-            <a href="https://salu133445.github.io/">Hao-Wen Dong</a>,
-            <a href="https://chrisdonahue.com/">Chris Donahue</a>,
-            <a href="https://cseweb.ucsd.edu/~jmcauley/">Julian McAuley</a>,
-            <a href="https://cseweb.ucsd.edu/~tberg/">Taylor Berg-Kirkpatrick</a>
-          </p>
-          <p class="author-affiliations">
-            University of California San Diego
+        <div class="info">
+          <p>
+            <a class="hidden" href="https://salu133445.github.io/">Hao-Wen Dong</a><sup>1</sup>,
+            <a class="hidden" href="https://chrisdonahue.com/">Chris Donahue</a><sup>2</sup>,
+            <a class="hidden" href="https://cseweb.ucsd.edu/~jmcauley/">Julian McAuley</a><sup>1</sup>,
+            <a class="hidden" href="https://cseweb.ucsd.edu/~tberg/">Taylor Berg-Kirkpatrick</a><sup>1</sup><br>
+            <sup>1 </sup>University of California San Diego<br>
+            <sup>2 </sup>Stanford University
           </p>
         </div>
 
-        <input id="main-menu-checkbox" class="main-menu-checkbox" type="checkbox">
-        <label for="main-menu-checkbox" class="menu-toggle"><i class="fas fa-bars fa-fw"></i></label>
+        <input id="menu-checkbox" class="menu-checkbox" type="checkbox">
+        <label for="menu-checkbox" class="menu-toggle"><i class="fas fa-bars fa-fw"></i></label>
+        <label for="menu-checkbox" class="menu-toggle-close"><i class="fas fa-times fa-fw"></i></label>
 
-        <nav class="main-menu" role="navigation">
-          <label for="main-menu-checkbox" class="main-menu-close"><i class="fas fa-times fa-fw"></i></label>
-
+        <nav class="menu" role="navigation">
           <div class="subpage-links">
-            <a class="icon-link" href="{{ site.github.url }}"><div class="link-button"><i class="fas fa-home fa-fw"></i><span class="icon-text">&nbsp;Home</span></div></a>
-            <a class="icon-link" href="abstract"><div class="link-button"><i class="fas fa-align-left fa-fw"></i><span class="icon-text">&nbsp;Abstract</span></div></a>
-            <a class="icon-link" href="introduction"><div class="link-button"><i class="fas fa-info-circle fa-fw"></i><span class="icon-text">&nbsp;Introduction</span></div></a>
-            <a class="icon-link" href="demo"><div class="link-button"><i class="fas fa-headphones-alt fa-fw"></i><span class="icon-text">&nbsp;Demo</span></div></a>
-            <a class="icon-link" href="paper"><div class="link-button"><i class="fas fa-book fa-fw"></i><span class="icon-text">&nbsp;Paper</span></div></a>
+            {% include icon_link_button.html text="Home" icon="fas fa-home fa-fw" href="/" %}
+            {% include icon_link_button.html text="Abstract" icon="fas fa-align-left fa-fw" href="abstract" %}
+            {% include icon_link_button.html text="Introduction" icon="fas fa-info-circle fa-fw" href="introduction" %}
+            {% include icon_link_button.html text="Demo" icon="fas fa-headphones-alt fa-fw" href="demo" %}
+            {% include icon_link_button.html text="Paper" icon="fas fa-book fa-fw" href="paper" %}
           </div>
 
           <div class="external-links">
-            <a class="icon-link" href="{{ site.github.repository_url }}"><div class="link-button"><i class="fab fa-github fa-fw"></i><span class="icon-text">&nbsp;GitHub</span></div></a>
+            {% include icon_link_button.html text="GitHub" icon="fab fa-github fa-fw" href=site.github.repository_url %}
+            {% include icon_link_button.html text="BergLab" icon="fas fa-users fa-fw" href="https://icebergnlp.github.io/" %}
+            {% include icon_link_button.html text="McAuleyLab" icon="fas fa-users fa-fw" href="https://cseweb.ucsd.edu/~jmcauley/" %}
+
           </div>
         </nav>
+
+        <button class="mode-toggle">
+          <span class="dark-mode"><i class="fas fa-moon fa-fw"></i><span class="mode-text"> Dark mode</span></span>
+          <span class="light-mode"><i class="fas fa-sun fa-fw"></i><span class="mode-text"> Light mode</span></span>
+        </button>
+
+        <hr>
       </header>
       <section>
-
-      {{ content }}
-
+        {{ content }}
       </section>
-      <footer>
-        <hr>
-        <small>Hosted on GitHub Pages &mdash; Theme adapted from <a href="https://github.com/orderedlist/minimal">minimal</a> by <a href="https://github.com/orderedlist">orderedlist</a></small>
-      </footer>
     </div>
     <script src="{{ '/assets/js/scale.fix.js' | relative_url }}"></script>
+    <script>
+      const btn = document.querySelector(".mode-toggle");
+      const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
+      // Listen for a click on the button
+      btn.addEventListener("click", function() {
+        // If the OS is set to dark mode...
+        if (prefersDarkScheme.matches) {
+          // ...then apply the .light-theme class to override those styles
+          document.body.classList.toggle("light-theme");
+          // Otherwise...
+        } else {
+          // ...apply the .dark-theme class to override the default light styles
+          document.body.classList.toggle("dark-theme");
+        }
+      });
+    </script>
   </body>
 </html>

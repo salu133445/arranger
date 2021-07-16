@@ -15,17 +15,18 @@
 
 (Colors: _piano_{:.blue}, _guitar_{:.orange}, _bass_{:.green}, _strings_{:.red}, _brass_{:.purple}.)
 
-- Mixture (input)
-  ![cette_annee_la_bw](images/cette_annee_la_bw.png){:.score}
+- Mixture (input)\\
+  ![cette_annee_la_bw](images/cette_annee_la_bw.png){:.score}\\
   {% include audio_player.html filename="cette_annee_la_common_default_drums.mp3" %}
-- Ground truth
-  ![cette_annee_la_truth](images/cette_annee_la_truth.png){:.score}
+
+- Ground truth\\
+  ![cette_annee_la_truth](images/cette_annee_la_truth.png){:.score}\\
   {% include audio_player.html filename="cette_annee_la_truth_drums.mp3" %}
-- Online LSTM prediction
-  ![cette_annee_la_lstm](images/cette_annee_la_lstm.png){:.score}
+- Online LSTM prediction\\
+  ![cette_annee_la_lstm](images/cette_annee_la_lstm.png){:.score}\\
   {% include audio_player.html filename="cette_annee_la_lstm_default_embedding_onsethint_drums.mp3" %}
-- Offline BiLSTM prediction
-  ![cette_annee_la_bilstm](images/cette_annee_la_bilstm.png){:.score}
+- Offline BiLSTM prediction\\
+  ![cette_annee_la_bilstm](images/cette_annee_la_bilstm.png){:.score}\\
   {% include audio_player.html filename="cette_annee_la_lstm_bidirectional_embedding_onsethint_duration_drums.mp3" %}
 
 ---
@@ -36,17 +37,17 @@
 
 ![beethoven_op95_score](images/beethoven_op95_score.png){:style="max-width: none;"}
 
-- Mixture (input)
-  ![beethoven_op95_bw](images/beethoven_op95_bw.png){:.score style="min-height: 60px;"}
+- Mixture (input)\\
+  ![beethoven_op95_bw](images/beethoven_op95_bw.png){:.score style="min-height: 60px;"}\\
   {% include audio_player.html filename="beethoven_op95_common_default.mp3" %}
-- Ground truth
-  ![beethoven_op95_truth](images/beethoven_op95_truth.png){:.score style="min-height: 60px;"}
+- Ground truth\\
+  ![beethoven_op95_truth](images/beethoven_op95_truth.png){:.score style="min-height: 60px;"}\\
   {% include audio_player.html filename="beethoven_op95_truth.mp3" %}
-- Online LSTM prediction
-  ![beethoven_op95_lstm](images/beethoven_op95_lstm.png){:.score style="min-height: 60px;"}
+- Online LSTM prediction\\
+  ![beethoven_op95_lstm](images/beethoven_op95_lstm.png){:.score style="min-height: 60px;"}\\
   {% include audio_player.html filename="beethoven_op95_lstm_default_embedding_onsethint.mp3" %}
-- Offline BiLSTM prediction
-  ![beethoven_op95_bilstm](images/beethoven_op95_bilstm.png){:.score style="min-height: 60px;"}
+- Offline BiLSTM prediction\\
+  ![beethoven_op95_bilstm](images/beethoven_op95_bilstm.png){:.score style="min-height: 60px;"}\\
   {% include audio_player.html filename="beethoven_op95_lstm_bidirectional_embedding_onsethint_duration.mp3" %}
 
 ---
@@ -57,17 +58,17 @@
 
 ![bwv434_score](images/bwv434_score.png){:style="max-width: none;"}
 
-- Mixture (input)
-  ![bwv434_bw](images/bwv434_bw.png){:.score}
+- Mixture (input)\\
+  ![bwv434_bw](images/bwv434_bw.png){:.score}\\
   {% include audio_player.html filename="bwv434_common_default.mp3" %}
-- Ground truth
-  ![bwv434_truth](images/bwv434_truth.png){:.score}
+- Ground truth\\
+  ![bwv434_truth](images/bwv434_truth.png){:.score}\\
   {% include audio_player.html filename="bwv434_truth.mp3" %}
-- Online LSTM prediction
-  ![bwv434_lstm](images/bwv434_lstm.png){:.score}
+- Online LSTM prediction\\
+  ![bwv434_lstm](images/bwv434_lstm.png){:.score}\\
   {% include audio_player.html filename="bwv434_lstm_default_embedding_onsethint.mp3" %}
-- Offline BiLSTM prediction
-  ![bwv434_bilstm](images/bwv434_bilstm.png){:.score}
+- Offline BiLSTM prediction\\
+  ![bwv434_bilstm](images/bwv434_bilstm.png){:.score}\\
   {% include audio_player.html filename="bwv434_lstm_bidirectional_embedding_onsethint_duration.mp3" %}
 
 ---
@@ -76,17 +77,17 @@
 
 (Colors: _pulse wave I_{:.blue}, _pulse wave II_{:.orange}, _triangle wave_{:.green}.)
 
-- Mixture (input)
-  ![miracle_ropits_adventure_in_2100_theme_of_universe_bw](images/miracle_ropits_adventure_in_2100_theme_of_universe_bw.png){:.score}
+- Mixture (input)\\
+  ![miracle_ropits_adventure_in_2100_theme_of_universe_bw](images/miracle_ropits_adventure_in_2100_theme_of_universe_bw.png){:.score}\\
   {% include audio_player.html filename="miracle_ropits_adventure_in_2100_theme_of_universe_common_default.mp3" %}
-- Ground truth
-  ![miracle_ropits_adventure_in_2100_theme_of_universe_truth](images/miracle_ropits_adventure_in_2100_theme_of_universe_truth.png){:.score}
+- Ground truth\\
+  ![miracle_ropits_adventure_in_2100_theme_of_universe_truth](images/miracle_ropits_adventure_in_2100_theme_of_universe_truth.png){:.score}\\
   {% include audio_player.html filename="miracle_ropits_adventure_in_2100_theme_of_universe_truth.mp3" %}
-- Online LSTM prediction
-  ![miracle_ropits_adventure_in_2100_theme_of_universe_lstm](images/miracle_ropits_adventure_in_2100_theme_of_universe_lstm.png){:.score}
+- Online LSTM prediction\\
+  ![miracle_ropits_adventure_in_2100_theme_of_universe_lstm](images/miracle_ropits_adventure_in_2100_theme_of_universe_lstm.png){:.score}\\
   {% include audio_player.html filename="miracle_ropits_adventure_in_2100_theme_of_universe_lstm_default_embedding_onsethint.mp3" %}
-- Offline BiLSTM prediction
-  ![miracle_ropits_adventure_in_2100_theme_of_universe_bilstm](images/miracle_ropits_adventure_in_2100_theme_of_universe_bilstm.png){:.score}
+- Offline BiLSTM prediction\\
+  ![miracle_ropits_adventure_in_2100_theme_of_universe_bilstm](images/miracle_ropits_adventure_in_2100_theme_of_universe_bilstm.png){:.score}\\
   {% include audio_player.html filename="miracle_ropits_adventure_in_2100_theme_of_universe_lstm_bidirectional_embedding_onsethint_duration.mp3" %}
 
 ---
@@ -95,17 +96,17 @@
 
 (Colors: _piano_{:.blue}, _guitar_{:.orange}, _bass_{:.green}, _strings_{:.red}, _brass_{:.purple}.)
 
-- Mixture (input)
-  ![blame_it_on_the_boogie_bw](images/blame_it_on_the_boogie_bw.png){:.score}
+- Mixture (input)\\
+  ![blame_it_on_the_boogie_bw](images/blame_it_on_the_boogie_bw.png){:.score}\\
   {% include audio_player.html filename="blame_it_on_the_boogie_common_default_drums.mp3" %}
-- Ground truth
-  ![blame_it_on_the_boogie_truth](images/blame_it_on_the_boogie_truth.png){:.score}
+- Ground truth\\
+  ![blame_it_on_the_boogie_truth](images/blame_it_on_the_boogie_truth.png){:.score}\\
   {% include audio_player.html filename="blame_it_on_the_boogie_truth_drums.mp3" %}
-- Online LSTM prediction
-  ![blame_it_on_the_boogie_lstm](images/blame_it_on_the_boogie_lstm.png){:.score}
+- Online LSTM prediction\\
+  ![blame_it_on_the_boogie_lstm](images/blame_it_on_the_boogie_lstm.png){:.score}\\
   {% include audio_player.html filename="blame_it_on_the_boogie_lstm_default_embedding_onsethint_drums.mp3" %}
-- Offline BiLSTM prediction
-  ![blame_it_on_the_boogie_bilstm](images/blame_it_on_the_boogie_bilstm.png){:.score}
+- Offline BiLSTM prediction\\
+  ![blame_it_on_the_boogie_bilstm](images/blame_it_on_the_boogie_bilstm.png){:.score}\\
   {% include audio_player.html filename="blame_it_on_the_boogie_lstm_bidirectional_embedding_onsethint_duration_drums.mp3" %}
 
 ---
@@ -114,15 +115,15 @@
 
 (Colors: _piano_{:.blue}, _guitar_{:.orange}, _bass_{:.green}, _strings_{:.red}, _brass_{:.purple}.)
 
-- Mixture (input)
-  ![quando_quando_quando_bw](images/quando_quando_quando_bw.png){:.score style="min-height: 60px;"}
+- Mixture (input)\\
+  ![quando_quando_quando_bw](images/quando_quando_quando_bw.png){:.score style="min-height: 60px;"}\\
   {% include audio_player.html filename="quando_quando_quando_common_default_drums.mp3" %}
-- Ground truth
-  ![quando_quando_quando_truth](images/quando_quando_quando_truth.png){:.score style="min-height: 60px;"}
+- Ground truth\\
+  ![quando_quando_quando_truth](images/quando_quando_quando_truth.png){:.score style="min-height: 60px;"}\\
   {% include audio_player.html filename="quando_quando_quando_truth_drums.mp3" %}
-- Online LSTM prediction
-  ![quando_quando_quando_lstm](images/quando_quando_quando_lstm.png){:.score style="min-height: 60px;"}
+- Online LSTM prediction\\
+  ![quando_quando_quando_lstm](images/quando_quando_quando_lstm.png){:.score style="min-height: 60px;"}\\
   {% include audio_player.html filename="quando_quando_quando_lstm_default_embedding_drums.mp3" %}
-- Offline BiLSTM prediction
-  ![quando_quando_quando_bilstm](images/quando_quando_quando_bilstm.png){:.score style="min-height: 60px;"}
+- Offline BiLSTM prediction\\
+  ![quando_quando_quando_bilstm](images/quando_quando_quando_bilstm.png){:.score style="min-height: 60px;"}\\
   {% include audio_player.html filename="quando_quando_quando_lstm_bidirectional_embedding_onsethint_duration_drums.mp3" %}
