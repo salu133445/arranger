@@ -3,8 +3,8 @@
 @import "all.css";
 @import "custom.css";
 
-// Main wrappers
-body {
+// Theme
+:root {
   --text-color: #333;
   --strong-text-color: #222;
   --weak-text-color: #555;
@@ -23,16 +23,30 @@ body {
   --highlight-number-color: #666666;
   --highlight-string-color: #BA2121;
   --highlight-name-builtin-pseudo-color: #267CB9; //#008000
-  overflow-x: hidden;
-  margin-left: calc(100vw - 100%);
-  padding: 50px;
-  background-color: var(--bg-color);
-  font: 16px/1.5 "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-weight: 400;
-  color: var(--text-color);
 }
 
-body.dark-theme {
+html[data-theme='light'] {
+  --text-color: #333;
+  --strong-text-color: #222;
+  --weak-text-color: #555;
+  --weaker-text-color: #666;
+  --bg-color: #fff;
+  --weak-bg-color: #eee;
+  --weaker-bg-color: #ddd;
+  --link-color: #267CB9;
+  --hover-color: #069;
+  --bulb-hover-color: #B80;
+  --highlight-comment-color: #408080;
+  --highlight-keyword-color: #008000;
+  --highlight-keyword-type-color: #B00040;
+  --highlight-name-color: #2323da; //#0000FF
+  --highlight-name-class-color: #2323da; //#0000FF
+  --highlight-number-color: #666666;
+  --highlight-string-color: #BA2121;
+  --highlight-name-builtin-pseudo-color: #267CB9; //#008000
+}
+
+html[data-theme='dark'] {
   --text-color: #ddd;
   --strong-text-color: #eee;
   --weak-text-color: #ccc;
@@ -53,6 +67,17 @@ body.dark-theme {
   --highlight-name-builtin-pseudo-color: #6abcff; //#9CDCFE
 }
 
+// Main wrappers
+body {
+  overflow-x: hidden;
+  margin-left: calc(100vw - 100%);
+  padding: 50px;
+  background-color: var(--bg-color);
+  font: 16px/1.5 "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 400;
+  color: var(--text-color);
+}
+
 .wrapper {
   margin: 0 auto;
   width: 1100px;
@@ -68,11 +93,6 @@ section {
   float: right;
   width: 740px;
   margin-bottom: 50px;
-}
-
-// Menu
-.menu-checkbox, .menu-toggle, .menu-toggle-close {
-  display: none;
 }
 
 // Header
@@ -108,7 +128,11 @@ header hr {
   display: none
 }
 
-// Dark mode toggle
+// Menu
+.menu-checkbox, .menu-toggle, .menu-toggle-close {
+  display: none;
+}
+
 .mode-toggle {
   right: 0px;
   top: 0px;
@@ -133,22 +157,29 @@ header hr {
   margin: auto;
 }
 
-body .dark-mode {
-  display: static;
-}
-
 body .light-mode {
   display: none;
 }
 
-body.dark-theme .dark-mode {
-  display: none;
-}
-
-body.dark-theme .light-mode {
+body .dark-mode {
   display: static;
 }
 
+html[data-theme='light'] body .light-mode {
+  display: none;
+}
+
+html[data-theme='light'] body .dark-mode {
+  display: inherit;
+}
+
+html[data-theme='dark'] body .light-mode {
+  display: inherit;
+}
+
+html[data-theme='dark'] body .dark-mode {
+  display: none;
+}
 
 // Video player
 .video-container {
@@ -344,17 +375,12 @@ hr {
     padding: 20px 0;
   }
 
-  // Dark mode toggle
-  .mode-toggle {
-    margin: 0;
-    position: fixed;
-    right: 90px;
-    top: 50px;
-    width: 35px;
-    height: 35px;
+  // Header
+  .title {
+    padding: 0 80px 0 0;
   }
 
-  .mode-toggle .mode-text {
+  .info {
     display: none;
   }
 
@@ -441,12 +467,16 @@ hr {
     z-index: 1000;
   }
 
-  // Others
-  .title {
-    padding: 0 80px 0 0;
+  .mode-toggle {
+    margin: 0;
+    position: fixed;
+    right: 90px;
+    top: 50px;
+    width: 35px;
+    height: 35px;
   }
 
-  .info {
+  .mode-toggle .mode-text {
     display: none;
   }
 }
@@ -557,75 +587,5 @@ hr {
 
   ul {
     padding-left: 20px;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  body {
-    --text-color: #ddd;
-    --bg-color: #222;
-    --weak-text-color: #ccc;
-    --weaker-text-color: #bbb;
-    --strong-text-color: #eee;
-    --weak-bg-color: #333;
-    --weaker-bg-color: #555;
-    --link-color: #77c5fd;
-    --hover-color: #aadcff;
-    --bulb-hover-color: #cc0;
-    --highlight-comment-color: #7db466; //#608B4E
-    --highlight-keyword-color: #94d379; //#569CD6
-    --highlight-keyword-type-color: #4EC9B0; //#4EC9B0
-    --highlight-name-color: #8fdae7; //#DCDCAA
-    --highlight-name-class-color: #8fdae7; //#4EC980
-    --highlight-number-color: #B5CEA8; //#B5CEA8
-    --highlight-string-color: #CE9178; //#CE9178
-    --highlight-name-builtin-pseudo-color: #6abcff; //#9CDCFE
-  }
-
-  body.light-theme {
-    --text-color: #333;
-    --strong-text-color: #222;
-    --weak-text-color: #555;
-    --weaker-text-color: #666;
-    --bg-color: #fff;
-    --weak-bg-color: #eee;
-    --weaker-bg-color: #ddd;
-    --link-color: #267CB9;
-    --hover-color: #069;
-    --bulb-hover-color:#B80;
-    --highlight-comment-color: #408080;
-    --highlight-keyword-color: #008000;
-    --highlight-keyword-type-color: #B00040;
-    --highlight-name-color: #2323da; //#0000FF
-    --highlight-name-class-color: #2323da; //#0000FF
-    --highlight-number-color: #666666;
-    --highlight-string-color: #BA2121;
-    --highlight-name-builtin-pseudo-color: #267CB9; //#008000
-  }
-
-  body .dark-mode {
-    display: none;
-  }
-
-  body .light-mode {
-    display: inline;
-  }
-
-  body.light-theme .dark-mode {
-    display: inline !important;
-  }
-
-  body.light-theme .light-mode {
-    display: none !important;
-  }
-
-  img {
-    background: #fff;
-  }
-}
-
-@media print, screen and (min-width: 960px) and (prefers-color-scheme: dark) {
-  .menu {
-    background: var(--bg-color);
   }
 }
