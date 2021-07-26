@@ -7,6 +7,7 @@ Directory structure
 ```text
 ├─ analysis         Notebooks for analysis
 ├─ scripts          Scripts for running experiments
+├─ models           Pretrained models
 └─ arranger         Main Python module
    ├─ config.yaml   Configuration file
    ├─ data          Code for collecting and processing data
