@@ -84,6 +84,20 @@ def save_sample(music, sample_dir, filename, colors):
     return pianoroll
 
 
+def save_sample_flat(music, sample_dir, filename, colors):
+    """Save a music sample into different formats."""
+    music.save(sample_dir / f"{filename}.json")
+    try:
+        music.write(sample_dir / f"{filename}.mid")
+    except ValueError:
+        # NOTE: A workaround for a MIDI output bug in MusPy
+        music.key_signatures = []
+        music.write(sample_dir / f"{filename}.mid")
+    pianoroll = to_pianoroll(music, colors)
+    imageio.imwrite(sample_dir / f"{filename}.png", pianoroll)
+    return pianoroll
+
+
 def save_comparison(pianoroll, pianoroll_pred, sample_dir, filename):
     """Save comparisons of piano rolls."""
     if pianoroll.shape[1] > pianoroll_pred.shape[1]:

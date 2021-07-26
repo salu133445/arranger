@@ -1,4 +1,4 @@
 """Transformer model."""
-from . import data, infer, train
+from . import infer, model, predict, train
 
-__all__ = ["data", "train", "infer"]
+__all__ = ["train", "infer", "predict", "model"]

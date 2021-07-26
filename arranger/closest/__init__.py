@@ -1,4 +1,4 @@
 """Closest-pitch algorithm."""
-from . import infer
+from . import infer, predict
 
-__all__ = ["infer"]
+__all__ = ["infer", "predict"]

@@ -12,9 +12,6 @@ import tqdm
 
 from arranger.utils import load_config, setup_loggers
 
-# Set random seed
-random.seed(0)
-
 # Load configuration
 CONFIG = load_config()
 
