@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-message: If you use the code provided in this repository, please cite the following paper.
+message: If you use this software, please cite it using these metadata.
 authors:
   - family-names: Dong
     given-names: Hao-Wen
