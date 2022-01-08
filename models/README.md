@@ -5,7 +5,7 @@ To run a pretrained model, please pass the corresponding command line options to
 
 For example, use the following command to run the pretrained BiLSTM model with embeddings.
 
-```python
+```sh
 # Assuming we are at the root of the repository
 cp models/bach/lstm/bidirectional_embedding/best_models.hdf5 OUTPUT_DIRECTORY
 python3 arranger/lstm/infer.py \
