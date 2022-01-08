@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: If you use the code provided in this repository, please cite the following paper.
+authors:
+  - family-names: Dong
+    given-names: Hao-Wen
+title: Arranger
+preferred-citation:
+  type: article
+  authors:
+    - family-names: Dong
+      given-names: Hao-Wen
+    - family-names: Donahue
+      given-names: Chris
+    - family-names: Berg-Kirkpatrick
+      given-names: Taylor
+    - family-names: McAuley
+      given-names: Julian
+  title: "Towards Automatic Instrumentation by Learning to Separate Parts in Symbolic Multitrack Music"
+  journal: Proceedings of the 22nd International Society for Music Information Retrieval Conference (ISMIR)
+  year: 2021
+date-released: 2021-05-20
+license: MIT
+url: "https://salu133445.github.io/arranger/"
+repository-code: "https://github.com/salu133445/arranger"
