@@ -1,3 +1,3 @@
 # Paper
 
-{% include ref_arranger.html %}
+{% include ref_arranger.md %}

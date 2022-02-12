@@ -1,3 +1,13 @@
 theme: jekyll-theme-minimal
 title: Arranger
 description: An AI for Automatic Instrumentation
+icons:
+  homepage: fas fa-globe-asia
+  video: fab fa-youtube
+  paper: fas fa-file-pdf
+  slides: fas fa-file-pdf
+  poster: fas fa-file-pdf
+  arxiv: fas fa-archive
+  code: fab fa-github
+  documentation: fas fa-book
+  reviews: fas fa-comments

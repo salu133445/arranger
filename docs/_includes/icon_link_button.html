@@ -1,1 +1,1 @@
-<a class="icon-link-button" href="{{ include.href }}" style="{{ include.style }}"><div class="link-button"><i class="{{ include.icon }}"></i><span class="icon-text"> {{ include.text }}</span></div></a>
+<a class="icon-link-button" href="{{ include.href }}" style="{{ include.style }} {% if include.small %} font-size: smaller {% endif %}"><div class="link-button"><i class="{{ include.icon }}"></i><span class="icon-text"> {{ include.text }}</span></div></a>

@@ -1,14 +1,15 @@
 @import "fonts";
 @import "highlight";
-@import "all.css";
-@import "custom.css";
+@import "fontawesome.css";
+
+@import "custom";
 
 // Theme
 :root {
   --text-color: #333;
   --strong-text-color: #222;
   --weak-text-color: #555;
-  --weaker-text-color: #666;
+  --weaker-text-color: #888;
   --bg-color: #fff;
   --weak-bg-color: #eee;
   --weaker-bg-color: #ddd;
@@ -18,18 +19,18 @@
   --highlight-comment-color: #408080;
   --highlight-keyword-color: #008000;
   --highlight-keyword-type-color: #B00040;
-  --highlight-name-color: #2323da; //#0000FF
-  --highlight-name-class-color: #2323da; //#0000FF
+  --highlight-name-color: #2323da;
+  --highlight-name-class-color: #2323da;
   --highlight-number-color: #666666;
   --highlight-string-color: #BA2121;
-  --highlight-name-builtin-pseudo-color: #267CB9; //#008000
+  --highlight-name-builtin-pseudo-color: #267CB9;
 }
 
-html[data-theme='light'] {
+html[data-theme="light"] {
   --text-color: #333;
   --strong-text-color: #222;
   --weak-text-color: #555;
-  --weaker-text-color: #666;
+  --weaker-text-color: #888;
   --bg-color: #fff;
   --weak-bg-color: #eee;
   --weaker-bg-color: #ddd;
@@ -39,32 +40,32 @@ html[data-theme='light'] {
   --highlight-comment-color: #408080;
   --highlight-keyword-color: #008000;
   --highlight-keyword-type-color: #B00040;
-  --highlight-name-color: #2323da; //#0000FF
-  --highlight-name-class-color: #2323da; //#0000FF
+  --highlight-name-color: #2323da;
+  --highlight-name-class-color: #2323da;
   --highlight-number-color: #666666;
   --highlight-string-color: #BA2121;
-  --highlight-name-builtin-pseudo-color: #267CB9; //#008000
+  --highlight-name-builtin-pseudo-color: #267CB9;
 }
 
-html[data-theme='dark'] {
-  --text-color: #ddd;
-  --strong-text-color: #eee;
-  --weak-text-color: #ccc;
-  --weaker-text-color: #bbb;
+html[data-theme="dark"] {
+  --text-color: #ccc;
+  --strong-text-color: #ddd;
+  --weak-text-color: #bbb;
+  --weaker-text-color: #999;
   --bg-color: #222;
   --weak-bg-color: #333;
   --weaker-bg-color: #555;
   --link-color: #77c5fd;
   --hover-color: #aadcff;
   --bulb-hover-color: #cc0;
-  --highlight-comment-color: #7db466; //#608B4E
-  --highlight-keyword-color: #94d379; //#569CD6
-  --highlight-keyword-type-color: #4EC9B0; //#4EC9B0
-  --highlight-name-color: #8fdae7; //#DCDCAA
-  --highlight-name-class-color: #8fdae7; //#4EC980
-  --highlight-number-color: #B5CEA8; //#B5CEA8
-  --highlight-string-color: #CE9178; //#CE9178
-  --highlight-name-builtin-pseudo-color: #6abcff; //#9CDCFE
+  --highlight-comment-color: #7db466;
+  --highlight-keyword-color: #94d379;
+  --highlight-keyword-type-color: #4EC9B0;
+  --highlight-name-color: #8fdae7;
+  --highlight-name-class-color: #8fdae7;
+  --highlight-number-color: #B5CEA8;
+  --highlight-string-color: #CE9178;
+  --highlight-name-builtin-pseudo-color: #6abcff;
 }
 
 // Main wrappers
@@ -84,7 +85,7 @@ body {
 }
 
 header {
-  width: 270px;
+  width: 260px;
   float: left;
   position: fixed;
 }
@@ -95,28 +96,25 @@ section {
   margin-bottom: 50px;
 }
 
-// Header
-.title {
+footer {
+  width: 260px;
+  float: left;
+  position: fixed;
+  bottom: 50px;
+  color: var(--weaker-text-color);
+  font-size: 12px;
+}
+
+// Header & footer
+.title, .title a {
   color: var(--strong-text-color);
 }
 
-.title a {
-  color: var(--strong-text-color);
-}
-
-sup { vertical-align: top; font-size: 0.6em; }
-
-.title .chinese-name {
-  font-family: 'cwTeXKai';
-  margin-top: 10px;
-  font-weight: 400;
-}
-
-.subpage-links {
+.info, .info .people, .info .affiliations {
   margin-bottom: 20px;
 }
 
-.external-links {
+.subpage-links, .external-links {
   margin-bottom: 20px;
 }
 
@@ -124,8 +122,12 @@ sup { vertical-align: top; font-size: 0.6em; }
   background: var(--weak-bg-color);
 }
 
-header hr {
+header hr, footer hr {
   display: none
+}
+
+footer a {
+  color: var(--weaker-text-color);
 }
 
 // Menu
@@ -165,19 +167,19 @@ body .dark-mode {
   display: static;
 }
 
-html[data-theme='light'] body .light-mode {
+html[data-theme="light"] body .light-mode {
   display: none;
 }
 
-html[data-theme='light'] body .dark-mode {
+html[data-theme="light"] body .dark-mode {
   display: inherit;
 }
 
-html[data-theme='dark'] body .light-mode {
+html[data-theme="dark"] body .light-mode {
   display: inherit;
 }
 
-html[data-theme='dark'] body .dark-mode {
+html[data-theme="dark"] body .dark-mode {
   display: none;
 }
 
@@ -240,22 +242,42 @@ h1, h2, h3 {
 
 h1 {
   font-size: 20px;
+  font-weight: 700;
 }
 
 h2 {
-  font-size: 18px;
-}
-
-h3 {
   font-size: 16px;
+  font-weight: 700;
 }
 
-small {
-  font-size: 11px;
+h3, h4, h5, h6 {
+  font-size: 16px;
+  font-weight: 400;
 }
 
 strong {
   font-weight: 700;
+}
+
+.bold {
+  font-weight: 700;
+}
+
+small {
+  font-size: smaller;
+}
+
+.small {
+  font-size: smaller;
+}
+
+.italic {
+  font-style: italic;
+}
+
+sup {
+  vertical-align: top;
+  font-size: 1.2ex;
 }
 
 a {
@@ -281,7 +303,6 @@ blockquote {
   border-left: 1px solid var(--weaker-bg-color);
   margin: 0;
   padding: 0 0 0 20px;
-  font-style: italic;
 }
 
 code, pre {
@@ -365,7 +386,7 @@ hr {
     width: auto;
   }
 
-  header, section {
+  header, section, footer {
     float: none;
     width: auto;
     position: static;
@@ -382,6 +403,15 @@ hr {
 
   .info {
     display: none;
+  }
+
+  header hr {
+    display: block;
+    margin-bottom: 0;
+  }
+
+  footer hr {
+    display: block;
   }
 
   // Menu
@@ -440,17 +470,8 @@ hr {
     background: var(--weaker-bg-color);
   }
 
-  .subpage-links {
+  .subpage-links, .external-links {
     margin: 0;
-  }
-
-  .external-links {
-    margin: 0;
-  }
-
-  header hr {
-    display: block;
-    margin-bottom: 0;
   }
 
   #menu-checkbox:checked ~ .menu-toggle-close {
