@@ -1,5 +1,7 @@
 # Arranger
 
+This repository contains the official implementation of "Towards Automatic Instrumentation by Learning to Separate Parts in Symbolic Multitrack Music" (ISMIR 2021).
+
 __Towards Automatic Instrumentation by Learning to Separate Parts in Symbolic Multitrack Music__<br>
 Hao-Wen Dong, Chris Donahue, Taylor Berg-Kirkpatrick and Julian McAuley<br>
 _Proceedings of the International Society for Music Information Retrieval Conference (ISMIR)_, 2021<br>
