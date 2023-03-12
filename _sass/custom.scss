@@ -1,0 +1,54 @@
+:root {
+  --blue: #1f77b4;
+  --orange: #ff7700;
+  --green: #2ca02c;
+  --red: #d62728;
+  --purple: #9467bd;
+}
+
+html[data-theme="light"] {
+  --blue: #1f77b4;
+  --orange: #ff7700;
+  --green: #2ca02c;
+  --red: #d62728;
+  --purple: #9467bd;
+}
+
+html[data-theme="dark"] {
+  --blue: #51a5e1;
+  --orange: #ff9233;
+  --green: #37c837;
+  --red: #df5353;
+  --purple: #b395d0;
+}
+
+.blue {
+  color: var(--blue);;
+}
+
+.orange {
+  color: var(--orange);;
+}
+
+.green {
+  color: var(--green);;
+}
+
+.red {
+  color: var(--red);;
+}
+
+.purple {
+  color: var(--purple);;
+}
+
+.score {
+  max-width: none;
+  min-height: 40px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.table-score {
+  min-height: 60px;
+}
