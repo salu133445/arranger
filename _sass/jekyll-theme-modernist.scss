@@ -180,6 +180,13 @@ dl {
   margin: 0 0 20px;
 }
 
+ul ul,
+ul ol,
+ol ol,
+ol ul {
+  margin-bottom: 0;
+}
+
 h1,
 h2,
 h3 {
@@ -212,6 +219,8 @@ blockquote {
 
 img {
   max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
   border-radius: 5px;
 }
 
@@ -240,7 +249,9 @@ pre {
 }
 
 table {
-  width: 100%;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
   border-collapse: collapse;
 }
 
@@ -372,6 +383,18 @@ footer {
 
 .table-wrapper {
   overflow-x: auto;
+}
+
+.width-800 {
+  max-width: 800px;
+}
+
+.width-600 {
+  max-width: 600px;
+}
+
+.width-400 {
+  max-width: 400px;
 }
 
 @media print,
