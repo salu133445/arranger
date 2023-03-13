@@ -46,12 +46,12 @@ All samples are synthesized using [FluidSynth](https://www.fluidsynth.org/) with
 
 <div class="table-wrapper" markdown="block">
 
-  | Mixture (input) | Predicted instrumentation (output) |
-  |:-:|:-:|
-  | (guitar) | (piano, guitar, bass, strings, brass) |
-  | {% include audio_player.html filename="audio/cette_annee_la_common_default_drums.mp3" %} | {% include audio_player.html filename="audio/cette_annee_la_lstm_bidirectional_embedding_onsethint_duration_drums.mp3" %} |
-  | {% include audio_player.html filename="audio/blame_it_on_the_boogie_common_default_drums.mp3" %} | {% include audio_player.html filename="audio/blame_it_on_the_boogie_lstm_bidirectional_embedding_onsethint_duration_drums.mp3" %} |
-  | {% include audio_player.html filename="audio/quando_quando_quando_common_default_drums.mp3" %} | {% include audio_player.html filename="audio/quando_quando_quando_lstm_bidirectional_embedding_onsethint_duration_drums.mp3" %} |
+| Mixture (input) | Predicted instrumentation (output) |
+|:-:|:-:|
+| (guitar) | (piano, guitar, bass, strings, brass) |
+| {% include audio_player.html filename="audio/cette_annee_la_common_default_drums.mp3" %} | {% include audio_player.html filename="audio/cette_annee_la_lstm_bidirectional_embedding_onsethint_duration_drums.mp3" %} |
+| {% include audio_player.html filename="audio/blame_it_on_the_boogie_common_default_drums.mp3" %} | {% include audio_player.html filename="audio/blame_it_on_the_boogie_lstm_bidirectional_embedding_onsethint_duration_drums.mp3" %} |
+| {% include audio_player.html filename="audio/quando_quando_quando_common_default_drums.mp3" %} | {% include audio_player.html filename="audio/quando_quando_quando_lstm_bidirectional_embedding_onsethint_duration_drums.mp3" %} |
 
 </div>
 
