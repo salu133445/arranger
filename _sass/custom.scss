@@ -1,54 +1,24 @@
-:root {
-  --blue: #1f77b4;
-  --orange: #ff7700;
-  --green: #2ca02c;
-  --red: #d62728;
-  --purple: #9467bd;
-}
-
-html[data-theme="light"] {
-  --blue: #1f77b4;
-  --orange: #ff7700;
-  --green: #2ca02c;
-  --red: #d62728;
-  --purple: #9467bd;
-}
-
-html[data-theme="dark"] {
-  --blue: #51a5e1;
-  --orange: #ff9233;
-  --green: #37c837;
-  --red: #df5353;
-  --purple: #b395d0;
-}
-
 .blue {
-  color: var(--blue);;
+  color: #1f77b4;
 }
 
 .orange {
-  color: var(--orange);;
+  color: #ff7700;
 }
 
 .green {
-  color: var(--green);;
+  color: #2ca02c;
 }
 
 .red {
-  color: var(--red);;
+  color: #d62728;
 }
 
 .purple {
-  color: var(--purple);;
+  color: #9467bd;
 }
 
 .score {
-  max-width: none;
-  min-height: 40px;
-  margin-top: 10px;
-  margin-bottom: 10px;
-}
-
-.table-score {
-  min-height: 60px;
+  min-height: 50px;
+  min-width: 500px;
 }

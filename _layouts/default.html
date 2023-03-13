@@ -3,89 +3,40 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    {% seo %}
+
+{% seo %}
+
     <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
+    <script src="{{ '/assets/js/scale.fix.js' | relative_url }}"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
     <!--[if lt IE 9]>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
+
+    {% include head-custom.html %}
   </head>
   <body>
     <div class="wrapper">
-      <header>
-        <div class="title">
-          <h1><a class="nohover" href="{{ site.github.url }}">Arranger</a></h1>
-        </div>
-        <div class="info">
-          <div class="people">
-            <a href="https://salu133445.github.io/">Hao-Wen&nbsp;Dong</a>,
-            <a href="https://chrisdonahue.com/">Chris&nbsp;Donahue</a>,
-            <a href="https://cseweb.ucsd.edu/~jmcauley/">Julian&nbsp;McAuley</a>,
-            <a href="https://cseweb.ucsd.edu/~tberg/">Taylor&nbsp;Berg-Kirkpatrick</a>
-          </div>
-          <div class="affiliations">
-            University of California San Diego<br>Stanford University
-          </div>
-        </div>
-        <input id="menu-checkbox" class="menu-checkbox" type="checkbox">
-        <label for="menu-checkbox" class="menu-toggle"><i class="fa-solid fa-bars fa-fw"></i></label>
-        <label for="menu-checkbox" class="menu-toggle-close"><i class="fa-solid fa-times fa-fw"></i></label>
-        <nav class="menu" role="navigation">
-          <div class="subpage-links">
-            {% include icon_link_button.html text="Home" icon="fa-solid fa-home fa-fw" href=site.github.url %}
-            {% include icon_link_button.html text="Overview" icon="fa-solid fa-info-circle fa-fw" href="overview" %}
-            {% include icon_link_button.html text="Audio Samples" icon="fa-solid fa-music fa-fw" href="samples" %}
-            {% include icon_link_button.html text="Paper" icon="fa-solid fa-book fa-fw" href="paper" %}
-          </div>
-          <div class="external-links">
-            {% include icon_link_button.html text="GitHub" icon="fa-brands fa-github fa-fw" href=site.github.repository_url %}
-            {% include icon_link_button.html text="BergLab" icon="fa-solid fa-users fa-fw" href="https://icebergnlp.github.io/" %}
-            {% include icon_link_button.html text="McAuleyLab" icon="fa-solid fa-users fa-fw" href="https://cseweb.ucsd.edu/~jmcauley/" %}
-          </div>
-        </nav>
-        <button class="mode-toggle">
-          <span class="dark-mode"><i class="fa-solid fa-moon fa-fw"></i><span class="mode-text"> Dark mode</span></span>
-          <span class="light-mode"><i class="fa-solid fa-sun fa-fw"></i><span class="mode-text"> Light mode</span></span>
-        </button>
-        <hr>
-        <div class="notice">
-          Hosted on GitHub Pages. Powered by <a href="http://jekyllrb.com">Jekyll</a>.
-          Theme adapted from <a href="https://github.com/orderedlist/minimal">minimal</a> by <a href="https://github.com/orderedlist">orderedlist.</a></a>
-        </div>
+      <header {% unless site.description or site.github.project_tagline %} class="without-description" {% endunless %}>
+        <h1>{{ site.title | default: site.github.repository_name }}</h1>
+        {% if site.description or site.github.project_tagline %}
+          <p>{{ site.description | default: site.github.project_tagline }}</p>
+        {% endif %}
       </header>
       <section>
-        {{ content }}
+
+      {{ content }}
+
       </section>
-      <footer>
-        <hr>
-        <div class="notice">
-          Hosted on GitHub Pages. Powered by <a href="http://jekyllrb.com">Jekyll</a>.
-          Theme adapted from <a href="https://github.com/orderedlist/minimal">minimal</a> by <a href="https://github.com/orderedlist">orderedlist.</a></a>
-        </div>
-      </footer>
     </div>
-    <script src="{{ '/assets/js/scale.fix.js' | relative_url }}"></script>
-    <script>
-      // Get theme from local storage or system preference
-      var theme = localStorage.getItem('theme');
-      if (!theme) {
-        theme = (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-      }
-      // Set theme
-      if (theme === "dark") {
-        document.documentElement.setAttribute("data-theme", "dark");
-      } else {
-        document.documentElement.setAttribute("data-theme", "light");
-      }
-      // Listen for a click on the button
-      const btn = document.querySelector(".mode-toggle");
-      btn.addEventListener("click", function() {
-        theme = document.documentElement.getAttribute("data-theme");
-        var targetTheme = (theme === "dark") ? "light" : "dark";
-        document.documentElement.setAttribute("data-theme", targetTheme);
-        localStorage.setItem("theme", targetTheme);
-      });
-    </script>
+    <footer>
+      {% if site.github.is_project_page %}
+        <p>Project maintained by <a href="{{ site.github.owner_url }}">{{ site.github.owner_name }}</a></p>
+      {% endif %}
+      <p>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></p>
+    </footer>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
   </body>
 </html>
