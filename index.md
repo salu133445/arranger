@@ -12,9 +12,9 @@ __Towards Automatic Instrumentation by Learning to Separate Parts in Symbolic Mu
 {% include icon_link.html text="homepage" icon=site.icons.homepage href="https://salu133445.github.io/arranger/" %} &emsp;
 {% include icon_link.html text="paper" icon=site.icons.paper href="https://arxiv.org/pdf/2107.05916.pdf" %} &emsp;
 {% include icon_link.html text="video" icon=site.icons.video href="https://youtu.be/-KncOGouAh8" %} &emsp;
-{% include icon_link.html text="slides" icon=site.icons.slides href="https://salu133445.github.io/arranger/pdf/arranger-ismir2021-slides.pdf" %} &emsp;
+{% include icon_link.html text="slides" icon=site.icons.slides href="https://salu133445.github.io/arranger/pdf/arranger_ismir2021_slides.pdf" %} &emsp;
 {% include icon_link.html text="code" icon=site.icons.code href="https://github.com/salu133445/arranger" %} &emsp;
-{% include icon_link.html text="reviews" icon=site.icons.reviews href="https://salu133445.github.io/arranger/pdf/arranger-ismir2021-reviews.pdf" %}
+{% include icon_link.html text="reviews" icon=site.icons.reviews href="https://salu133445.github.io/arranger/pdf/arranger_ismir2021_reviews.pdf" %}
 {:.center}
 
 {% include video_player.html id="-KncOGouAh8" %}
