@@ -17,14 +17,14 @@ __Towards Automatic Instrumentation by Learning to Separate Parts in Symbolic Mu
 {% include icon_link.html text="reviews" icon=site.icons.reviews href="https://salu133445.github.io/arranger/pdf/arranger_ismir2021_reviews.pdf" %}
 {:.center}
 
-{% include video_player.html id="-KncOGouAh8" %}
+{% include youtube_player.html id="-KncOGouAh8" %}
 
 ---
 
 ## Content
 
 - [Best Samples](#best-samples)
-- [Cette année-là_ by Claude François (Figure 1)](#fig1)
+- [_Cette année-là_ by Claude François (Figure 1)](#fig1)
 - [_String Quartet No. 11 in F minor, Op. 95, Movement 1_ by Ludwig van Beethoven (Figure 2)](#fig2)
 - [_Wer nur den lieben Gott läßt walten, BWV 434_ by Johann Sebastian Bach (Figure 3)](#fig3)
 - [_Theme of Universe_ from Miracle Ropit's Adventure in 2100 (Figure 4)](#fig4)
